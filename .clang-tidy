@@ -1,0 +1,4 @@
+Checks: 'clang-analyzer-*, cert-*, concurrency-*, darwin-*, llvm-*'
+WarningsAsErrors: '*'
+HeaderFilterRegex: ''
+FormatStyle: GNU
