@@ -1,4 +1,15 @@
-
+/**
+ *  ---------
+ *  CATEGORY
+ *          Implementation
+ * 
+ *  DESCRIPTION
+ *          Definitions of four operations: calc, alloc, free_data, read
+ *          and a wrapper run() which returns status code from the above
+ *          operations.
+ *          
+ * 
+*/
 #include "loader.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +23,14 @@ static uint32_t avail_pid = 1;
 #define OPT_READ "read"
 #define OPT_WRITE "write"
 
+/**
+ *  ---------
+ *  DESCRIPTION
+ *      Cast optcode string to optcode enum
+ * 
+ *  RETURN
+ *      enum CALC or ALLOC or FREE or READ or WRITE
+ */
 static enum ins_opcode_t
 get_opcode (char *opt)
 {
@@ -42,6 +61,14 @@ get_opcode (char *opt)
         }
 }
 
+/**
+ * --------
+ *  DESCRIPTION
+ *      Read processes from an external file, and assign properties to it
+ *
+ *  RETURN
+ *      Ptr to list of process' pcbs
+ */
 struct pcb_t *
 load (const char *path)
 {

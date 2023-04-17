@@ -6,6 +6,7 @@
         "cpu.h": "c",
         "stdlib.h": "c",
         "algorithm": "c",
-        "munit.h": "c"
+        "munit.h": "c",
+        "loader.h": "c"
     }
 }
