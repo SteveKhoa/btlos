@@ -1,5 +1,5 @@
 
-# External dependencies
+# Internal dependencies - Dependencies within our Project
 INC = -Iinclude
 LIB = -lpthread
 
@@ -73,8 +73,12 @@ clean:
 
 
 
-# Make test
-# to-do...
+# Unit-tests rules
+test-queue : ext/munit.c ext/munit.h
+	$(MAKE) -o test/queue/main test/queue/main.c -Iinclude -Iext ext/munit.c
+
+	./test/queue/main
+	
 
 
 
@@ -84,7 +88,7 @@ clean:
 
 
 
-# Our own make rules
+# Our own rules
 # Please contact our Messenger group for further details
 
 _ : _.c $(deps)

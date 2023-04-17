@@ -4,6 +4,8 @@
     ],
     "files.associations": {
         "cpu.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "algorithm": "c",
+        "munit.h": "c"
     }
 }
