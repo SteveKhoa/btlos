@@ -1,3 +1,14 @@
+/**
+ *  ---------
+ *  CATEGORY
+ *          Implementation file
+ * 
+ *  DESCRIPTION
+ *          Overall Memory Management Unit
+ *          
+ * 
+*/
+
 // #ifdef MM_PAGING
 /*
  * PAGING based Memory Management

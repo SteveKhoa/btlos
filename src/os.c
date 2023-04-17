@@ -1,4 +1,13 @@
-
+/**
+ *  ---------
+ *  CATEGORY
+ *          Runnable file with main()
+ * 
+ *  DESCRIPTION
+ *          This is the entry-point of our entire virtual OS.
+ *          
+ * 
+*/
 #include "cpu.h"
 #include "loader.h"
 #include "mm.h"

@@ -90,7 +90,10 @@ struct pcb_t
     struct memphy_struct **mswp;
     struct memphy_struct *active_mswp;
 #endif
-    struct page_table_t *page_table; // Page table
+    /**
+     * Deprecated since the specification said so... (page 5)
+    */
+    __attribute__((deprecated)) struct page_table_t *page_table; // Page table
     uint32_t bp;                     // Break pointer
 };
 

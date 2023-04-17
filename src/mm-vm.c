@@ -1,3 +1,15 @@
+/**
+ *  ---------
+ *  CATEGORY
+ *          Implementation file
+ * 
+ *  DESCRIPTION
+ *          Virtual memory
+ *          
+ * 
+*/
+
+
 // #ifdef MM_PAGING
 /*
  * PAGING based Memory Management

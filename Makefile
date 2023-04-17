@@ -54,7 +54,7 @@ sched: $(SCHED_OBJ)
 
 
 # Compiling the object files
-$(OBJ)/%.o: %.c ${HEADER} $(OBJ)
+$(OBJ)/%.o: %.c $(HEADER) $(OBJ)
 	$(MAKE) $(CFLAGS) $< -o $@
 
 # Prepare objectives container - create a new folder
@@ -73,8 +73,19 @@ clean:
 
 
 
+# Make test
+# to-do...
+
+
+
+
+
+
+
+
+
 # Our own make rules
 # Please contact our Messenger group for further details
 
-_ : _.c
+_ : _.c $(deps)
 	$(MAKE) $(CFLAGS) $^ -o _

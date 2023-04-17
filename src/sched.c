@@ -10,6 +10,9 @@ static struct queue_t run_queue;
 static pthread_mutex_t queue_lock;
 
 #ifdef MLQ_SCHED
+/**
+ * Define MAX_PRIO number of queues
+*/
 static struct queue_t mlq_ready_queue[MAX_PRIO];
 #endif
 

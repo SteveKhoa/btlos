@@ -15,9 +15,16 @@ struct pgn_t
     struct pgn_t *pg_next;
 };
 
-/*
+/**
  *  Memory region struct
- */
+ *  ---------
+ *  DESCRIPTION
+ *          Linked-list based.
+ *          Memory region, for example, could store the data of a dynamically 
+ *          allocated variable.
+ * 
+ *          see Figure: 3 for more details
+*/
 struct vm_rg_struct
 {
     unsigned long rg_start;
@@ -26,9 +33,16 @@ struct vm_rg_struct
     struct vm_rg_struct *rg_next;
 };
 
-/*
+/**
  *  Memory area struct
- */
+ *  ---------
+ *  DESCRIPTION
+ *          Linked-list based.
+ *          Area can contain two subset structures: 
+ *              free regions (freerg), memory region (vm_rg)
+ * 
+ *          see Figure: 3 for more details
+*/
 struct vm_area_struct
 {
     unsigned long vm_id;
@@ -50,15 +64,24 @@ struct vm_area_struct
  */
 struct mm_struct
 {
+    /**
+     * // no docs here currently
+    */
     uint32_t *pgd;
 
+    /**
+     * Head ptr of the Linked-list of Memory Areas.
+    */
     struct vm_area_struct *mmap;
 
-    /* Currently we support a fixed number of symbol */
+    /**
+     * Symbol region table.
+     * Currently we support a fixed number of symbol.
+    */
     struct vm_rg_struct symrgtbl[PAGING_MAX_SYMTBL_SZ];
 
     /* list of free page */
-    struct pgn_t *fifo_pgn;
+    struct pgn_t *fifo_pgn; // Should be deprecated
 };
 
 /*

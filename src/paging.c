@@ -1,4 +1,12 @@
-
+/**
+ *  ---------
+ *  CATEGORY
+ *          Runnable file with main()
+ * 
+ *  DESCRIPTION
+ *          Checking functionality of Virtual Memory Engine
+ * 
+*/
 #include "cpu.h"
 #include "loader.h"
 #include "mem.h"
