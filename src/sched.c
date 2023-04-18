@@ -1,4 +1,20 @@
-
+/**
+ * @file sched.c
+ * @category Implementation source code
+ * @brief 
+ *      Implementation of Multi-level queue (MLQ), which is a set of queues with
+ *      different priority. 
+ * 
+ *      MLQ has two main operations: get_proc() and put_proc(), get_proc() wisely
+ *      choose a process from one of its queues (based on MLQ algorithm) to feed the CPU.
+ *      put_proc() push back the residual process back to the queue of same priority-signature.
+ * 
+ * 
+ * @note
+ *      We distinguish MLQ (a set of queues) and queue (a normal FIFO priority queue).
+ *      Priority-signature means the queue with its associated priority. (ask group for further clarification)
+ * 
+ */
 #include "sched.h"
 #include "queue.h"
 #include <pthread.h>
@@ -10,16 +26,22 @@ static struct queue_t run_queue;
 static pthread_mutex_t queue_lock;
 
 #ifdef MLQ_SCHED
-/**
- * Define MAX_PRIO number of queues
-*/
+/* Define an array of queues */
 static struct queue_t mlq_ready_queue[MAX_PRIO];
 #endif
 
+/**
+ * @brief 
+ *      Check whether the MLQ is empty of not.
+ * 
+ * @return 
+ *      1 on empty, 0 on non-empty, -1 on error.
+ */
 int
 queue_empty (void)
 {
 #ifdef MLQ_SCHED
+    /* All queues must be empty, otherwise */
     unsigned long prio;
     for (prio = 0; prio < MAX_PRIO; prio++)
         if (!empty (&mlq_ready_queue[prio]))
@@ -49,6 +71,13 @@ init_scheduler (void)
  *  We implement stateful here using transition technique
  *  State representation   prio = 0 .. MAX_PRIO, curr_slot = 0..(MAX_PRIO -
  * prio)
+ */
+
+/**
+ * @brief 
+ *      Dequeue from one of the queues in MLQ
+ * 
+ * @return A ptr to dequeued pcb_t
  */
 struct pcb_t *
 get_mlq_proc (void)

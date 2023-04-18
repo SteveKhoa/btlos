@@ -1,3 +1,11 @@
+/**
+ * @file queue.c
+ * @category Implementation source code
+ * @brief 
+ *      Implementation from `queue.h` interface
+ * 
+ * 
+ */
 #include "queue.h"
 #include <stdio.h>
 #include <stdlib.h>

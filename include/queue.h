@@ -6,15 +6,17 @@
 
 #define MAX_QUEUE_SIZE 10
 
+/* Array-based queue */
 struct queue_t
 {
     struct pcb_t *proc[MAX_QUEUE_SIZE];
-    int size;
+    int size; // Keep track number of processes
 };
 
 /**
  * @brief 
- *      Add a new process into the queue.
+ *      Add a new process into the queue. It should add a process in a `sorted` 
+ *      manner.
  */
 void enqueue (struct queue_t *q, struct pcb_t *proc);
 

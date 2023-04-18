@@ -5,7 +5,7 @@ create_pcb (uint32_t pid, uint32_t priority, struct code_seg_t *code,
             uint32_t pc, struct page_table_t *page_table, uint32_t bp)
 {
     /*
-    This code was copied from loader.c, for a simple initialization of a pcb_t
+    This code was copied from loader.c, for a simple initialization of pcb_t
     */
     struct pcb_t *retpcb = (struct pcb_t *)malloc (sizeof (struct pcb_t));
 
