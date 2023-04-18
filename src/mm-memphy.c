@@ -1,13 +1,9 @@
 /**
- *  ---------
- *  CATEGORY
- *          Implementation file
- * 
- *  DESCRIPTION
- *          Physical memory
- *          
- * 
-*/
+ * @file mm-memphy.c
+ * @category Implementation source code
+ * @brief 
+ *      Implementation of physical memory operations.
+ */
 
 
 // #ifdef MM_PAGING

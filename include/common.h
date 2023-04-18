@@ -70,7 +70,13 @@ struct page_table_t
     int size; // Number of row in the first layer
 };
 
-/* PCB, describe information about a process */
+/**
+ * @brief
+ *      PCB, describe information about a process. This struct is associated
+ * with two other functions
+ * @note
+ *      Encourage initialization via create_pcb().
+ */
 struct pcb_t
 {
     uint32_t pid;      // PID
@@ -92,9 +98,35 @@ struct pcb_t
 #endif
     /**
      * Deprecated since the specification said so... (page 5)
-    */
-    __attribute__((deprecated)) struct page_table_t *page_table; // Page table
+     */
+    struct page_table_t *page_table; // Page table (DEPRECATED)
     uint32_t bp;                     // Break pointer
 };
+
+/**
+ * @brief
+ *      Allocate a pcb_t object on heap. Should be destructed via destroy_pcb()
+ *
+ * @param pid process id
+ * @param priority default priority, depends on the process itself
+ * @param code ptr to code segment
+ * @param pc program counter, points to the next instruction
+ * @param page_table DEPRECATED
+ * @param bp break pointer, point to the limit-point of the process on memory
+ *
+ * @author NK
+ * @return A ptr to the newly created PCB
+ */
+struct pcb_t *create_pcb (uint32_t pid, uint32_t priority,
+                          struct code_seg_t *code, uint32_t pc,
+                          struct page_table_t *page_table, uint32_t bp);
+
+/**
+ * @brief
+ *      Deallocate a pcb_t object from heap.
+ *
+ * @author NK
+ */
+void destroy_pcb (struct pcb_t *ptr);
 
 #endif

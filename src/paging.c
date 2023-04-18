@@ -1,12 +1,9 @@
 /**
- *  ---------
- *  CATEGORY
- *          Runnable file with main()
- * 
- *  DESCRIPTION
- *          Checking functionality of Virtual Memory Engine
- * 
-*/
+ * @file paging.c
+ * @category Executable file
+ * @brief 
+ *      Checking operation of paging.
+ */
 #include "cpu.h"
 #include "loader.h"
 #include "mem.h"

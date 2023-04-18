@@ -7,6 +7,14 @@
         "stdlib.h": "c",
         "algorithm": "c",
         "munit.h": "c",
-        "loader.h": "c"
+        "loader.h": "c",
+        "__locale": "c",
+        "atomic": "c",
+        "cstdlib": "c",
+        "locale": "c",
+        "ostream": "c",
+        "typeinfo": "c",
+        "complex": "c",
+        "new": "c"
     }
 }

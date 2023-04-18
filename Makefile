@@ -7,6 +7,7 @@ LIB = -lpthread
 SRC = src
 OBJ = obj
 INCLUDE = include
+EXT = ext
 
 # Compiler specification
 CC = gcc
@@ -20,12 +21,12 @@ vpath %.c $(SRC)
 vpath %.h $(INCLUDE)
 
 # Specify compiling command
-MAKE = $(CC) $(INC) 
+MAKE = $(CC) $(INC) -MP -MMD
 
 # Object files needed by modules
-MEM_OBJ = $(addprefix $(OBJ)/, paging.o mem.o cpu.o loader.o)
-OS_OBJ = $(addprefix $(OBJ)/, cpu.o mem.o loader.o queue.o os.o sched.o timer.o mm-vm.o mm.o mm-memphy.o)
-SCHED_OBJ = $(addprefix $(OBJ)/, cpu.o loader.o)
+MEM_OBJ = $(addprefix $(OBJ)/, paging.o mem.o cpu.o loader.o common.o)
+OS_OBJ = $(addprefix $(OBJ)/, cpu.o mem.o loader.o queue.o os.o sched.o timer.o mm-vm.o mm.o mm-memphy.o common.o)
+SCHED_OBJ = $(addprefix $(OBJ)/, cpu.o loader.o common.o)
 HEADER = $(wildcard $(INCLUDE)/*.h)
 
 
@@ -62,6 +63,7 @@ $(OBJ):
 	mkdir -p $(OBJ)
 
 clean:
+	find . -type f -name '*.d'  -delete
 	rm -f $(OBJ)/*.o os sched mem
 	rm -r $(OBJ)
 
@@ -74,10 +76,12 @@ clean:
 
 
 # Unit-tests rules
-test-queue : ext/munit.c ext/munit.h
-	$(MAKE) -o test/queue/main test/queue/main.c -Iinclude -Iext ext/munit.c
+test-queue : $(EXT)/munit.c $(EXT)/munit.h
+	@$(MAKE) -o test/queue \
+	test/queue.c \
+	-Iinclude -I$(EXT) $(EXT)/munit.c
 
-	./test/queue/main
+	@./test/queue
 	
 
 
@@ -89,7 +93,7 @@ test-queue : ext/munit.c ext/munit.h
 
 
 # Our own rules
-# Please contact our Messenger group for further details
+# Please ignore if you are not interested
 
 _ : _.c $(deps)
 	$(MAKE) $(CFLAGS) $^ -o _

@@ -16,14 +16,11 @@ struct pgn_t
 };
 
 /**
- *  Memory region struct
- *  ---------
- *  DESCRIPTION
- *          Linked-list based.
- *          Memory region, for example, could store the data of a dynamically 
- *          allocated variable.
+ * @brief
+ *          Linked-list based. Control the data 
+ *          of a dynamically allocated variable.
  * 
- *          see Figure: 3 for more details
+ *          See Figure: 3 for more details
 */
 struct vm_rg_struct
 {
@@ -34,14 +31,10 @@ struct vm_rg_struct
 };
 
 /**
- *  Memory area struct
- *  ---------
- *  DESCRIPTION
- *          Linked-list based.
- *          Area can contain two subset structures: 
- *              free regions (freerg), memory region (vm_rg)
- * 
- *          see Figure: 3 for more details
+ * @brief
+ *          Linked-list based. Area can contain two subset structures: 
+ *          free regions (freerg), memory region (vm_rg). See Figure: 3 for more 
+ *          details
 */
 struct vm_area_struct
 {

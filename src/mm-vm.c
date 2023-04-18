@@ -1,13 +1,9 @@
 /**
- *  ---------
- *  CATEGORY
- *          Implementation file
- * 
- *  DESCRIPTION
- *          Virtual memory
- *          
- * 
-*/
+ * @file mm-memphy.c
+ * @category Implementation source code
+ * @brief 
+ *      Implementation of virtual memory operations.
+ */
 
 
 // #ifdef MM_PAGING

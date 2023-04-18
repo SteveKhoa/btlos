@@ -1,25 +1,20 @@
 /**
- *  ---------
- *  CATEGORY
- *          Implementation
+ * @file cpu.c
+ * @category Implementation source code
+ * @brief 
+ *      Definitions of four operations: calc, alloc, free_data, read and
+ *      a wrapper run() which executes an instruction and returns status
+ *      code (0 or 1).
  * 
- *  DESCRIPTION
- *          Definitions of four operations: calc, alloc, free_data, read and 
- *          a wrapper run() which executes an instruction and returns status 
- *          code (0 or 1).
- *          
- * 
-*/
+ */
 #include "cpu.h"
 #include "mem.h"
 #include "mm.h"
 
 /**
- * --------
- *  DESCRIPTION
  *      Always return 0
  *
- *  RETURN
+ *  @return
  *      0 always successful
  */
 int
@@ -29,12 +24,11 @@ calc (struct pcb_t *proc)
 }
 
 /**
- * --------
- *  DESCRIPTION
- *      Claim `size` bytes in memory, and store the address to register `reg_index`.
+ *      Claim `size` bytes in memory, and store the address to register
+ * `reg_index`.
  *
- *  RETURN
- *      1 if not successful, 
+ *  @return
+ *      1 if not successful,
  *      0 if suceesful
  */
 int
@@ -53,12 +47,10 @@ alloc (struct pcb_t *proc, uint32_t size, uint32_t reg_index)
 }
 
 /**
- * --------
- *  DESCRIPTION
  *      Free the memory at address store in register `reg_index`.
- *      
  *
- *  RETURN
+ *
+ * @return
  *      0 if address valid
  *      1 if address invalid
  */
@@ -69,13 +61,11 @@ free_data (struct pcb_t *proc, uint32_t reg_index)
 }
 
 /**
- * --------
- *  DESCRIPTION
- *      Read the memory at addess `source`+`offset`, store the data into 
+ *      Read the memory at addess `source`+`offset`, store the data into
  *      register `destination`.
  *
- *  RETURN
- *      0 if successful, 
+ * @return
+ *      0 if successful,
  *      1 if unsuccessful
  */
 int
@@ -98,12 +88,10 @@ read (struct pcb_t *proc, // Process executing the instruction
 }
 
 /**
- * --------
- *  DESCRIPTION
  *      Write `data` to register `destination`+`offset`
  *
- *  RETURN
- *      0 if successful, 
+ * @return
+ *      0 if successful,
  *      1 if unsuccessful
  */
 int
@@ -117,13 +105,12 @@ write (struct pcb_t *proc,   // Process executing the instruction
 }
 
 /**
- * --------
- *  DESCRIPTION
- *      Execute AN instruction in the process and increase the program counter by one.
+ *      Execute AN instruction in the process and increase the program counter
+ *      by one.
  *      This func does NOT execute all instructions at once.
  *
- *  RETURN
- *      0 if successful, 
+ * @return
+ *      0 if successful,
  *      1 if unsuccessful or no more instructions
  */
 int

@@ -1,13 +1,9 @@
 /**
- *  ---------
- *  CATEGORY
- *          Implementation file
- * 
- *  DESCRIPTION
- *          Overall Memory Management Unit
- *          
- * 
-*/
+ * @file mm.c
+ * @category Implementation source code
+ * @brief 
+ *      Implementation of overall memory management operations.
+ */
 
 // #ifdef MM_PAGING
 /*
