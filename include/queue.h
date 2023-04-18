@@ -15,8 +15,12 @@ struct queue_t
 
 /**
  * @brief 
- *      Add a new process into the queue. It should add a process in a `sorted` 
- *      manner.
+ *      Add a new process into the queue in a `sorted` manner. So that we can
+ *      retrieve the process with least priority easily.
+ * 
+ * @note 
+ *      Although MLQ algorithm never uses priorities within queue, just implement
+ *      it - NK.
  */
 void enqueue (struct queue_t *q, struct pcb_t *proc);
 
@@ -36,5 +40,20 @@ struct pcb_t *dequeue (struct queue_t *q);
  * @return 1 - empty queue, 0 - otherwise.
  */
 int empty (struct queue_t *q);
+
+/**
+ * @brief 
+ *      Initialize queue
+ */
+struct queue_t* init_queue();
+
+/**
+ * @brief 
+ *      Reclaim memory allocated for queue
+ * 
+ * @brief
+ *      The pcb_t(s) controlled by this queue is NOT automatically destroyed.
+ */
+void destroy_queue();
 
 #endif

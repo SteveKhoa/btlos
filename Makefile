@@ -85,7 +85,7 @@ test-sample : $(EXT)/munit.c $(EXT)/munit.h
 
 test-queue : $(EXT)/munit.c $(EXT)/munit.h
 	@$(MAKE) -o test/queue \
-	test/queue.c \
+	test/queue.c src/common.c src/queue.c \
 	-Iinclude -I$(EXT) $(EXT)/munit.c
 
 	@./test/queue

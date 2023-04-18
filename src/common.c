@@ -1,4 +1,5 @@
 #include "common.h"
+#include <stdlib.h>
 
 struct pcb_t *
 create_pcb (uint32_t pid, uint32_t priority, struct code_seg_t *code,

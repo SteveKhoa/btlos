@@ -32,3 +32,13 @@ dequeue (struct queue_t *q)
      * */
     return NULL;
 }
+
+struct queue_t* init_queue()
+{
+    return NULL; // TO-DO, remember to init all ptrs to NULL, and set size = 0
+}
+
+void destroy_queue()
+{
+    ; // TO-DO
+}
