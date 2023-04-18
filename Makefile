@@ -76,6 +76,13 @@ clean:
 
 
 # Unit-tests rules
+test-sample : $(EXT)/munit.c $(EXT)/munit.h 
+	@$(MAKE) -o test/sample \
+	test/sample.c \
+	-Iinclude -I$(EXT) $(EXT)/munit.c
+
+	@./test/sample
+
 test-queue : $(EXT)/munit.c $(EXT)/munit.h
 	@$(MAKE) -o test/queue \
 	test/queue.c \
