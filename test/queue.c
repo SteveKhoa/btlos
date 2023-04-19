@@ -19,6 +19,11 @@
 
 /* Definition of test funcs */
 
+/*
+    This func tests the implementation of `init_queue()` and `destroy_queue()`:
+        - Check the `size` of queue 
+        - Check `empty()`
+*/
 MunitResult
 init_destroy (const MunitParameter params[], void *user_data_or_fixture)
 {
@@ -60,6 +65,11 @@ init_destroy (const MunitParameter params[], void *user_data_or_fixture)
     return MUNIT_OK; // Pass all requirements
 }
 
+/*
+    This func tests the implementation of `enqueue()`:
+        - Check `size` and `empty()` of queue
+        - Check if the `pcb_t` is present in the queue or not
+*/
 MunitResult
 enqueue_simple (const MunitParameter params[], void *user_data_or_fixture)
 {
@@ -88,6 +98,11 @@ enqueue_simple (const MunitParameter params[], void *user_data_or_fixture)
     return MUNIT_OK; // Pass all requirements
 }
 
+/*
+    This func tests two consecutive `enqueue()`s.
+        - Check `size` and `empty()`
+        - Check if the front element is modified or not
+*/
 MunitResult
 enqueue_double (const MunitParameter params[], void *user_data_or_fixture)
 {
@@ -119,6 +134,10 @@ enqueue_double (const MunitParameter params[], void *user_data_or_fixture)
     return MUNIT_OK; // Pass all requirements
 }
 
+/*
+    This func tests one `dequeue()`
+        - Check `empty()` and `size`
+*/
 MunitResult
 dequeue_simple (const MunitParameter params[], void *user_data_or_fixture)
 {
@@ -133,6 +152,11 @@ dequeue_simple (const MunitParameter params[], void *user_data_or_fixture)
             return MUNIT_FAIL;
         }
 
+    if (q == NULL)
+        {
+            return MUNIT_FAIL;
+        }
+
     if (q->size != 0) // q must contains zero element
         {
             return MUNIT_FAIL;
@@ -143,6 +167,11 @@ dequeue_simple (const MunitParameter params[], void *user_data_or_fixture)
     return MUNIT_OK; // Pass all requirements
 }
 
+/*
+    This func tests two consecutive `dequeue()`s
+        - Check the `empty()` and `size`
+        - Check if approriate `pcb_t` is still in the queue.
+*/
 MunitResult
 dequeue_double (const MunitParameter params[], void *user_data_or_fixture)
 {
@@ -178,6 +207,10 @@ dequeue_double (const MunitParameter params[], void *user_data_or_fixture)
     return MUNIT_OK; // Pass all requirements
 }
 
+/*
+    This func tests two interleaved `enqueue()`s and `dequeue()`.
+        - Check order of elements, ensure if it follows First-in First-out
+*/
 MunitResult
 enqueue_dequeue (const MunitParameter params[], void *user_data_or_fixture)
 {
@@ -192,14 +225,14 @@ enqueue_dequeue (const MunitParameter params[], void *user_data_or_fixture)
     enqueue (q, proc2);
     front = dequeue (q);
 
-    if (front != 0)
+    if (front->pid != 0)
         {
             return MUNIT_FAIL;
         }
 
     front = dequeue (q);
 
-    if (front->priority != 1)
+    if (front->pid != 1)
         {
             return MUNIT_FAIL;
         }
@@ -215,7 +248,73 @@ enqueue_dequeue (const MunitParameter params[], void *user_data_or_fixture)
 
     front = dequeue (q);
 
-    if (front->priority != 2)
+    if (front->pid != 2)
+        {
+            return MUNIT_FAIL;
+        }
+
+    destroy_pcb (proc1);
+    destroy_pcb (proc2);
+    destroy_pcb (proc3);
+    destroy_queue (q);
+    return MUNIT_OK; // Pass all requirements
+}
+
+/*
+    This func tests whether the queue follows priority FIFO
+        - Check the order of processes with different priority
+*/
+MunitResult
+priority_enqueue_dequeue (const MunitParameter params[],
+                          void *user_data_or_fixture)
+{
+    struct queue_t *q = init_queue ();
+    struct pcb_t *proc1 = create_pcb (0, 0, NULL, 0, NULL, 0); // dummy process
+    struct pcb_t *proc2 = create_pcb (1, 1, NULL, 0, NULL, 0); // dummy process
+    struct pcb_t *proc3 = create_pcb (2, 2, NULL, 0, NULL, 0); // dummy process
+
+    struct pcb_t *front = NULL; // for testing only
+
+    /* Enqueue order: 2, 1, 0 */
+    enqueue (q, proc3);
+    enqueue (q, proc2);
+    enqueue (q, proc1);
+
+    front = dequeue (q);
+    if (front == NULL)
+        {
+            return MUNIT_FAIL;
+        }
+
+    if (front->pid != 0)
+        {
+            return MUNIT_FAIL;
+        }
+
+    front = dequeue (q);
+    if (front == NULL)
+        {
+            return MUNIT_FAIL;
+        }
+
+    if (front->pid != 1)
+        {
+            return MUNIT_FAIL;
+        }
+
+    front = dequeue (q);
+    if (front == NULL)
+        {
+            return MUNIT_FAIL;
+        }
+
+    if (front->pid != 2)
+        {
+            return MUNIT_FAIL;
+        }
+
+    front = dequeue (q);
+    if (front != NULL)
         {
             return MUNIT_FAIL;
         }
@@ -273,6 +372,14 @@ MunitTest tests[]
         {
             "[5] Interleaved enqueue and dequeue: ", /* name of the test */
             dequeue_double,                          /* test func */
+            NULL,                   /* setup func (test constructor) */
+            NULL,                   /* tear_down func (test destructor) */
+            MUNIT_TEST_OPTION_NONE, /* options */
+            NULL                    /* parameters to the test func */
+        },
+        {
+            "[6] Priority enqueue & dequeue: ", /* name of the test */
+            priority_enqueue_dequeue,           /* test func */
             NULL,                   /* setup func (test constructor) */
             NULL,                   /* tear_down func (test destructor) */
             MUNIT_TEST_OPTION_NONE, /* options */
