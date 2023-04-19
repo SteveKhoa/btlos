@@ -15,6 +15,7 @@
         "ostream": "c",
         "typeinfo": "c",
         "complex": "c",
-        "new": "c"
+        "new": "c",
+        "sched.h": "c"
     }
 }

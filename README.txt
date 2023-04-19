@@ -1,10 +1,16 @@
 SCHEDULE
 ============
 The lastest news lie on top of this section.
+
 --------[not finished]
+Summary:
+    - Summary is here after each sprint
+
 Code-review and Discussion (? time):
     1. Explain your code
-    2. ???????????
+    2. Discuss:
+ *      Group discussion required to decide whether we should use ready_queue or
+ *      not (to make sure that our OS runs fine on both MLQ and single-queue).
 
 
 To-do (to 12:00AM, Apr 19)
@@ -31,6 +37,9 @@ Notes:
 ===========
 
 NOTES
+============
+ *      Group discussion required to decide whether we should use ready_queue or
+ *      not (to make sure that our OS runs fine on both MLQ and single-queue).
 ============
 
 Run Static code checker:

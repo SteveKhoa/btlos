@@ -89,6 +89,13 @@ test-queue : $(EXT)/munit.c $(EXT)/munit.h
 	-Iinclude -I$(EXT) $(EXT)/munit.c
 
 	@./test/queue
+
+test-sched: $(EXT)/munit.c $(EXT)/munit.h
+	@$(MAKE) -o test/sched \
+	test/sched.c src/common.c src/sched.c src/queue.c \
+	-Iinclude -I$(EXT) $(EXT)/munit.c
+
+	@./test/sched
 	
 
 
