@@ -5,7 +5,7 @@
 #include "common.h"
 
 #define MAX_QUEUE_SIZE 10
-
+#define MAX_INT 1000000
 /* Array-based queue */
 struct queue_t
 {
@@ -54,6 +54,6 @@ struct queue_t* init_queue();
  * @brief
  *      The pcb_t(s) controlled by this queue is NOT automatically destroyed.
  */
-void destroy_queue();
+void destroy_queue(struct queue_t *);
 
 #endif
