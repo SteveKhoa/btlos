@@ -5,10 +5,11 @@
  *      Implementation of Multi-level queue (MLQ), which is a set of queues
  * with different priority.
  *
- *      MLQ has two main operations: get_proc() and put_proc(), get_proc()
- * wisely choose a process from one of its queues (based on MLQ algorithm) to
- * feed the CPU. put_proc() push back the residual process back to the queue of
- * same priority-signature.
+ *      MLQ has two main operations: get_proc() and put_proc()
+ *      get_proc() chooses a process from one of its queues (based on MLQ algorithm)
+ *      to feed the CPU.
+ *
+ *      put_proc() push back the residual process back to the queue of same priority-signature.
  *
  *
  * @note
@@ -44,7 +45,9 @@ int
 queue_empty (void)
 {
 #ifdef MLQ_SCHED
-    /* All queues in MLQ must be empty, otherwise */
+    /**
+     * Check if all queues in MLQ are empty
+     * */
     unsigned long prio;
     for (prio = 0; prio < MAX_PRIO; prio++)
         if (!empty (&mlq_ready_queue[prio]))
@@ -64,10 +67,10 @@ init_scheduler (void)
     for (i = 0; i < MAX_PRIO; i++)
         mlq_ready_queue[i].size = 0;
 #endif
+    // DEPRECATED
     // ready_queue.size = 0;
     // DEPRECATED
     // run_queue.size = 0;
-    // DEPRECATED
     pthread_mutex_init (&queue_lock, NULL);
 }
 
@@ -83,21 +86,57 @@ finish_scheduler (void)
  *  based on the priority and our MLQ policy
  *  We implement stateful here using transition technique
  *  State representation   prio = 0 .. MAX_PRIO, curr_slot = 0..(MAX_PRIO -
- * prio)
+ *  prio)
  */
 struct pcb_t *
 get_mlq_proc (void)
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "UnreachableCode"
 {
+    /**TODO:
+     Get a process from PRIORITY [ready_queue].
+     Use lock to protect the queue.
+     @return the process from ready_queue
+     */
     struct pcb_t *proc = NULL;
-    /*TODO: get a process from PRIORITY [ready_queue].
-     * Remember to use lock to protect the queue.
-     * */
+
+    /* If all queues are empty, return NULL */
+    if (queue_empty()) return proc;
+
+    int priority = 0;
+    int time_slice = 0;
+    int designated_slots;
+    while (priority < MAX_PRIO){
+            /** Loop through MLQ.
+             * @if a queue is empty
+                * continue to next queue
+             * @else
+             *  @if ran out of designated time slices?
+                *  continue to next queue
+             *  @else
+                *  get the first process
+             */
+            designated_slots = MAX_PRIO - priority;
+            int count = 0;
+            struct queue_t priority_queue = mlq_ready_queue[priority];
+            if (priority_queue.size != 0){
+                if (count == designated_slots)
+                    continue ;
+                else
+                    proc = dequeue(&priority_queue);
+                }
+
+        }
     return proc;
 }
+#pragma clang diagnostic pop
 
 void
 put_mlq_proc (struct pcb_t *proc)
 {
+    /** TODO
+     * adds a process to the MLQ policy according to its priority
+     */
     pthread_mutex_lock (&queue_lock);
     enqueue (&mlq_ready_queue[proc->prio], proc);
     pthread_mutex_unlock (&queue_lock);
@@ -106,6 +145,9 @@ put_mlq_proc (struct pcb_t *proc)
 void
 add_mlq_proc (struct pcb_t *proc)
 {
+    /** TODO
+     * @attention What is the difference between this and put_mlq_proc
+     */
     pthread_mutex_lock (&queue_lock);
     enqueue (&mlq_ready_queue[proc->prio], proc);
     pthread_mutex_unlock (&queue_lock);
