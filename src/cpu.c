@@ -104,19 +104,19 @@ write (struct pcb_t *proc,   // Process executing the instruction
     return write_mem (proc->regs[destination] + offset, proc, data);
 }
 
-/**
- *      Execute AN instruction in the process and increase the program counter
- *      by one.
- *      This func does NOT execute all instructions at once.
- *
- * @return
- *      0 if successful,
- *      1 if unsuccessful or no more instructions
- */
 int
 run (struct pcb_t *proc)
 {
-    /* Check if Program Counter point to the proper instruction */
+    /**
+     *      Execute AN instruction in the process and increase the program counter
+     *      by one.
+     *      This func does NOT execute all instructions at once.
+     *
+     * @return
+     *      0 if successful,
+     *      1 if unsuccessful or no more instructions
+     */
+    /* Check if the Program Counter points to the proper instruction */
     if (proc->pc >= proc->code->size)
         {
             return 1;
