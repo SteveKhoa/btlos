@@ -54,6 +54,21 @@ dequeue (struct queue_t *q)
     /* TODO: return a pcb whose priority is the highest
      * in the queue [q] and remember to remove it from q
      * */
+#ifdef MLQ_SCHED /* Skip the priority and dequeue the first proc if using MLQ */
+
+    if(!empty(q))
+    {
+        struct pcb_t *newProc = malloc(sizeof(struct pcb_t));
+        newProc = q->proc[0];
+        for(int i = 0; i < q->size; i++)
+        {
+            q->proc[i] = q->proc[i+1];
+        }
+        q->size--;
+        return newProc;
+    }
+
+#else
     if(!empty(q))
     {
         int index = queuePeek(q);
@@ -66,9 +81,7 @@ dequeue (struct queue_t *q)
         q->size--;
         return newProc;
     }
-    
-
-
+#endif
     return NULL;
 }
 
