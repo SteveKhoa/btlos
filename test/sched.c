@@ -8,8 +8,8 @@
  */
 
 #include "../include/sched.h"
-#include "common.h"
-#include "munit.h"
+#include "../src/sched.c"
+#include "../ext/munit.h"
 #include <stdio.h>
 #include <stdlib.h>
 

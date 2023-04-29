@@ -7,7 +7,6 @@
 #define MLQ_SCHED
 #endif
 
-#define MAX_PRIO 139
 
 /**
  * @brief

@@ -61,6 +61,7 @@ struct mm_struct
      * // no docs here currently
     */
     uint32_t *pgd;
+    // page directory
 
     /**
      * Head ptr of the Linked-list of Memory Areas.

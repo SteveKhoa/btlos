@@ -11,7 +11,7 @@ struct queue_t
 {
     struct pcb_t *proc[MAX_QUEUE_SIZE];
     int size; // Number of processes in queue
-    int time_slices;
+    int slots;
 };
 
 void enqueue (struct queue_t *q, struct pcb_t *proc);
