@@ -5,12 +5,13 @@
 #include "common.h"
 
 #define MAX_QUEUE_SIZE 10
-
+#define MAX_INT 1000000
 /* Array-based queue */
 struct queue_t
 {
     struct pcb_t *proc[MAX_QUEUE_SIZE];
-    int size; // Keep track number of processes
+    int size; // Number of processes in queue
+    int slots;
 };
 
 /**
@@ -54,6 +55,6 @@ struct queue_t* init_queue();
  * @brief
  *      The pcb_t(s) controlled by this queue is NOT automatically destroyed.
  */
-void destroy_queue();
+void destroy_queue(struct queue_t *);
 
 #endif

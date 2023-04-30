@@ -2,3 +2,5 @@
 _.c
 test/*.d
 src/*.d
+input/
+output/

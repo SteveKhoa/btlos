@@ -74,7 +74,7 @@ cpu_routine (void *args)
             else if (proc->pc == proc->code->size)
                 {
                     /* The porcess has finish it job */
-                    printf ("\tCPU %d: Processed %2d has finished\n", id,
+                    printf ("\tCPU %d: Process %2d has finished\n", id,
                             proc->pid);
                     free (proc);
                     proc = get_proc ();

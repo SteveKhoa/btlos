@@ -22,23 +22,80 @@ void
 enqueue (struct queue_t *q, struct pcb_t *proc)
 {
     /* TODO: put a new process to queue [q] */
+    if(q->size < MAX_QUEUE_SIZE - 1)
+    {
+        q->proc[q->size] = proc;
+        q->size++;
+    }
+    
+}
+
+int
+queuePeek(struct queue_t *q)
+{
+    int maxPrio = MAX_INT;
+    int index = -1;
+
+    for(int i = 0; i < q->size; i++) 
+    {
+        if(maxPrio > q->proc[i]->priority)
+        {
+            maxPrio =  q->proc[i]->priority;
+            index = i;
+        }
+    }
+
+    return index;
 }
 
 struct pcb_t *
 dequeue (struct queue_t *q)
 {
-    /* TODO: return a pcb whose prioprity is the highest
+    /* TODO: return a pcb whose priority is the highest
      * in the queue [q] and remember to remove it from q
      * */
+#ifdef MLQ_SCHED /* Skip the priority and dequeue the first proc if using MLQ */
+
+    if(!empty(q))
+    {
+        struct pcb_t *newProc = malloc(sizeof(struct pcb_t));
+        newProc = q->proc[0];
+        for(int i = 0; i < q->size; i++)
+        {
+            q->proc[i] = q->proc[i+1];
+        }
+        q->size--;
+        return newProc;
+    }
+
+#else
+    if(!empty(q))
+    {
+        int index = queuePeek(q);
+        struct pcb_t *newProc = malloc(sizeof(struct pcb_t));
+        newProc = q->proc[index];
+        for(int i = index; i < q->size; i++)
+        {
+            q->proc[i] = q->proc[i+1];
+        }
+        q->size--;
+        return newProc;
+    }
+#endif
     return NULL;
 }
 
-struct queue_t* init_queue()
+struct queue_t * init_queue()
 {
-    return NULL; // TO-DO, remember to init all ptrs to NULL, and set size = 0
-}
+    /* data */
+    struct queue_t *ready_queue = malloc(sizeof(struct queue_t));
+    ready_queue->size = 0;
+    return ready_queue;
+    
+};
 
-void destroy_queue()
+void destroy_queue(struct queue_t *q)
 {
-    ; // TO-DO
+    free(q->proc);
+    q->size = 0;
 }

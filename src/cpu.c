@@ -1,11 +1,11 @@
 /**
  * @file cpu.c
  * @category Implementation source code
- * @brief 
+ * @brief
  *      Definitions of four operations: calc, alloc, free_data, read and
  *      a wrapper run() which executes an instruction and returns status
  *      code (0 or 1).
- * 
+ *
  */
 #include "cpu.h"
 #include "mem.h"
@@ -116,7 +116,7 @@ write (struct pcb_t *proc,   // Process executing the instruction
 int
 run (struct pcb_t *proc)
 {
-    /* Check if Program Counter point to the proper instruction */
+    /* Check if the Program Counter points to the proper instruction */
     if (proc->pc >= proc->code->size)
         {
             return 1;
