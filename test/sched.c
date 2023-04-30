@@ -55,6 +55,8 @@ putproc_simple (const MunitParameter params[], void *user_data_or_fixture)
     put_proc (proc2);
     put_proc (proc3);
 
+    printf("fd");
+
     if (queue_empty () != -1)
         {
             return MUNIT_FAIL;

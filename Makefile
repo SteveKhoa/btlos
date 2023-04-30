@@ -41,14 +41,17 @@ HEADER = $(wildcard $(INCLUDE)/*.h)
 all: os
 
 # Compile the whole OS simulation
+# into one single executable
 os: $(OS_OBJ)
 	$(MAKE) $(LFLAGS) $(OS_OBJ) -o os $(LIB)
 
 # Just compile memory management modules
+# into one single executable
 mem: $(MEM_OBJ)
 	$(MAKE) $(LFLAGS) $(MEM_OBJ) -o mem $(LIB)
 
 # Just compile scheduler
+# into one single executable
 sched: $(SCHED_OBJ)
 	$(MAKE) $(LFLAGS) $(MEM_OBJ) -o sched $(LIB)
 
@@ -63,9 +66,9 @@ $(OBJ):
 	mkdir -p $(OBJ)
 
 clean:
-	find . -type f -name '*.d'  -delete
-	rm -f $(OBJ)/*.o os sched mem
-	rm -r $(OBJ)
+	@rm -f $(OBJ)/*.o os sched mem
+	@find . -type f -name '*.d'  -delete
+	@rm -r $(OBJ)
 
 
 
@@ -96,6 +99,9 @@ test-sched: $(EXT)/munit.c $(EXT)/munit.h
 	-Iinclude -I$(EXT) $(EXT)/munit.c
 
 	@./test/sched
+
+clean-test:
+	rm -rf test/queue test/sample test/sched
 	
 
 
