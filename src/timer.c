@@ -1,5 +1,6 @@
 /**
  * @file timer.c
+ * @category Implementation source code
  * @brief 
  *      Not sure what is this right now.
  */

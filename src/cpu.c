@@ -106,8 +106,7 @@ write (struct pcb_t *proc,   // Process executing the instruction
 
 /**
  *      Execute AN instruction in the process and increase the program counter
- *      by one.
- *      This func does NOT execute all instructions at once.
+ *      by one. This func does NOT execute all instructions at once.
  *
  * @return
  *      0 if successful,

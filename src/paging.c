@@ -2,7 +2,7 @@
  * @file paging.c
  * @category Executable file
  * @brief 
- *      Checking operation of paging.
+ *      Checking operation of paging (Memory).
  */
 #include "cpu.h"
 #include "loader.h"
