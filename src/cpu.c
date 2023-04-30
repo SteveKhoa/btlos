@@ -123,7 +123,7 @@ run (struct pcb_t *proc)
         }
 
     struct inst_t ins = proc->code->text[proc->pc];
-    proc->pc++;
+    proc->pc++; // Increase the program counter
     int stat = 1;
     switch (ins.opcode)
         {

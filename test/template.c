@@ -46,9 +46,6 @@ test3 (const MunitParameter params[], void *user_data_or_fixture)
 
 
 MunitTest tests[] = {
-    /* Testcase 1 */
-    /* In documentation, you should describe exactly what the
-       test does, what is its expected value, and stuf...*/
     {
         "Testcase 1: ",         /* name of the test */
         test1,                  /* test func */
@@ -75,13 +72,6 @@ MunitTest tests[] = {
         MUNIT_TEST_OPTION_NONE, /* options */
         NULL                    /* parameters to the test func */
     },
-    /* Testcase ... */
-    /*You got the idea!*/
-
-    /*  Mark the end of the array with an entry where the test function is NULL, 
-        YOU MUST ALWAYS MARK THIS "ENDING" TESTCASE TO SIGNIFY THE END OF THE
-        TEST SESSION
-    */
     { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL }
 };
 

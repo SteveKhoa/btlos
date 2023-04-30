@@ -85,6 +85,7 @@ dequeue (struct queue_t *q)
     return NULL;
 }
 
+/* Heap-allocate the queue, and initialize its attributes*/
 struct queue_t * init_queue()
 {
     /* data */
@@ -94,8 +95,10 @@ struct queue_t * init_queue()
     
 };
 
+/* Reclaim the heap-allocation of the queue */
 void destroy_queue(struct queue_t *q)
 {
     free(q->proc);
     q->size = 0;
+    free(q);
 }

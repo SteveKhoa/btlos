@@ -6,10 +6,11 @@
  * with different priority.
  *
  *      MLQ has two main operations: get_proc() and put_proc()
- *      get_proc() chooses a process from one of its queues (based on MLQ algorithm)
- *      to feed the CPU.
+ *      get_proc() chooses a process from one of its queues (based on MLQ
+ * algorithm) to feed the CPU.
  *
- *      put_proc() push back the residual process back to the queue of same priority.
+ *      put_proc() push back the residual process back to the queue of same
+ * priority.
  *
  *
  * @note
@@ -20,10 +21,10 @@
  *      There are tons of legacy code in this file, just read the specification
  *      carefully and decide which should not be implemented. NK purposefully
  * mark not useful declarations as deprecated. (both as comments and as macros)
- * 
+ *
  * @warning
- *      Group discussion required to decide whether we should use ready_queue or
- *      not (to make sure that our OS runs fine on both MLQ and single-queue).
+ *      Group discussion required to decide whether we should use ready_queue
+ * or not (to make sure that our OS runs fine on both MLQ and single-queue).
  *
  */
 #include "sched.h"
@@ -44,7 +45,7 @@ static struct queue_t mlq_ready_queue[MAX_PRIO];
 
 #ifdef MLQ_SCHED
 void
-reset_slots(void)
+reset_slots (void)
 {
     unsigned long prio;
     for (prio = 0; prio < MAX_PRIO; prio++)
@@ -114,32 +115,36 @@ get_mlq_proc (void)
     struct pcb_t *proc = NULL;
 
     /* If all queues are empty, return NULL */
-    if (queue_empty() == 1) return proc;
+    if (queue_empty () == 1)
+        return proc;
 
     int designated_slots;
     int num_queues_out_slots = 0;
-    while (1){
+    while (1)
+        {
             /** LOOP THROUGH MLQ
              * @if a queue is empty
-                * continue to next queue
+             * continue to next queue
              * @else
              *  @if ran out of designated slots (time slices)?
-                *  continue to next queue
+             *  continue to next queue
              *  @else
-                *  get the first process
+             *  get the first process
              */
-             // If all queues have run out of slots,
-             // we reset their slots and are back
-             // to the highest priority queue.
-             if (num_queues_out_slots == MAX_PRIO) reset_slots();
+            // If all queues have run out of slots,
+            // we reset their slots and are back
+            // to the highest priority queue.
+            if (num_queues_out_slots == MAX_PRIO)
+                reset_slots ();
             // Otherwise, compute the number of slots a queue gets
             designated_slots = MAX_PRIO - current_prio;
             // access the corresponding prio queue in the MLQ
-            struct queue_t * priority_queue = &mlq_ready_queue[current_prio];
+            struct queue_t *priority_queue = &mlq_ready_queue[current_prio];
             // check emptiness
-            if (priority_queue->size != 0){
+            if (priority_queue->size != 0)
+                {
                     // out of slots?
-                if (priority_queue->slots == designated_slots)
+                    if (priority_queue->slots == designated_slots)
                         {
                             // increase the out-of-slots counter
                             num_queues_out_slots++;
@@ -149,15 +154,17 @@ get_mlq_proc (void)
                             continue;
                         }
                     else // just get the first process from the queue
-                    {
-                        proc = dequeue (priority_queue);
-                        // because a process will exec in 1 time slice,
-                        // increment "slots" counter by 1
-                        priority_queue->slots++;
-                        return proc;
-                    }
+                        {
+                            proc = dequeue (priority_queue);
+                            // because a process will exec in 1 time slice,
+                            // increment "slots" counter by 1
+                            priority_queue->slots++;
+                            return proc;
+                        }
                 }
-            else current_prio = (current_prio + 1) % MAX_PRIO; // check next queue
+            else
+                current_prio
+                    = (current_prio + 1) % MAX_PRIO; // check next queue
         }
 }
 
@@ -166,7 +173,10 @@ put_mlq_proc (struct pcb_t *proc)
 {
     /** TODO
      * adds a process to the MLQ policy according to its priority
-     * @remark maybe, this func is for putting a not finished proc into the queue.
+     * @remark maybe, this func is for putting a not finished proc into the
+     * queue.
+     * 
+     * @remark NK agreed with your idea
      *
      */
     pthread_mutex_lock (&queue_lock);
@@ -180,24 +190,35 @@ add_mlq_proc (struct pcb_t *proc)
     /** TODO
      * @attention What is the difference between this and put_mlq_proc?
      * @remark maybe, this func is for adding a new proc into the queue.
+     * 
+     * @remark NK agreed with your idea
      */
     pthread_mutex_lock (&queue_lock);
     enqueue (&mlq_ready_queue[proc->prio], proc);
     pthread_mutex_unlock (&queue_lock);
 }
 
+/* Get a proc from queue */
 struct pcb_t *
 get_proc (void)
 {
     return get_mlq_proc ();
 }
 
+/* Put an unfinised proc back to queue */
 void
 put_proc (struct pcb_t *proc)
 {
     return put_mlq_proc (proc);
 }
 
+
+/**
+ * @brief Add an unfinished proc into queue
+ * @attention This method is just to distinguish from putting an unfinished proc
+ * back to queue. Two func basically behave the same, but separated to prevent
+ * confusion while using the interface.
+*/
 void
 add_proc (struct pcb_t *proc)
 {

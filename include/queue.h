@@ -9,9 +9,10 @@
 /* Array-based queue */
 struct queue_t
 {
+    /* Array of procs */
     struct pcb_t *proc[MAX_QUEUE_SIZE];
     int size; // Number of processes in queue
-    int slots;
+    int slots; // Number of time slots dedicated to a queue
 };
 
 /**

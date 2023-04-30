@@ -1,4 +1,8 @@
-
+/**
+ * @file timer.c
+ * @brief 
+ *      Not sure what is this right now.
+ */
 #include "timer.h"
 #include <stdio.h>
 #include <stdlib.h>
