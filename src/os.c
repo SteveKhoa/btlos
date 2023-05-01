@@ -301,6 +301,7 @@ main (int argc, char *argv[])
     pthread_join (ld, NULL);
 
     /* Stop timer */
+    /*fjaksdhfkjahsdkjfhaksdjfhkjasdhkjf*/
     stop_timer ();
 
     return 0;
