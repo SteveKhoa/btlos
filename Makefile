@@ -21,7 +21,7 @@ vpath %.c $(SRC)
 vpath %.h $(INCLUDE)
 
 # Specify compiling command
-MAKE = $(CC) $(INC) -MP -MMD
+MAKE = $(CC) $(INC) -MP -MMD $(args)
 
 # Object files needed by modules
 MEM_OBJ = $(addprefix $(OBJ)/, paging.o mem.o cpu.o loader.o common.o)
@@ -102,6 +102,7 @@ test-sched: $(EXT)/munit.c $(EXT)/munit.h
 
 clean-test:
 	rm -rf test/queue test/sample test/sched
+	rm -rf test/*.d
 	
 
 

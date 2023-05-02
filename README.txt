@@ -1,17 +1,14 @@
 SCHEDULE
 ============
 The lastest news lie on top of this section.
-
---------[not finished]
+---------
+--------- END OF SPRINT
+#
+#
+#
+--------[Finished]
 Summary:
-    - Summary is here after each sprint
-
-Code-review and Discussion (? time):
-    1. Explain your code
-    2. Discuss:
- *      Group discussion required to decide whether we should use ready_queue or
- *      not (to make sure that our OS runs fine on both MLQ and single-queue).
-
+    - Manh Khang and Minh Triet finished implementation of Queue
 
 To-do (to 12:00AM, Apr 19)
     Triet:
@@ -32,8 +29,7 @@ Notes:
         - loader.c
         - and their header files
     Please write documentation for everything you do.
-
----------
+--------- END OF SPRINT
 ===========
 
 NOTES

@@ -6,56 +6,69 @@
 
 #define MAX_QUEUE_SIZE 10
 #define MAX_INT 1000000
-/* Array-based queue */
+/**
+ * @brief Array-based queue. 
+ * Three attributes:
+ *      proc : a pointer to a stack-allocated contiguous array
+ *      size : dynamic size, a counter of processes. New processes
+ *              will be added at position size-th.
+ *      slots : number of round-robin quantum time spared for a queue.
+ * 
+ * @note This queue should be initialized and deinitialized with init_queue()
+ * and destroy_queue(). Any direct access to the attributes are deprecated.
+ * Since it is not safe to have any external code to access into the queue
+ * internals.
+ * 
+ */
 struct queue_t
 {
-    /* Array of procs */
-    struct pcb_t *proc[MAX_QUEUE_SIZE];
-    int size; // Number of processes in queue
-    int slots; // Number of time slots dedicated to a queue
+    struct pcb_t *proc[MAX_QUEUE_SIZE]; // ptr to contiguous array
+    int size; // Number of processes in queue, dynamically changes as the queue
+              // grow
+    int slots; // Number of time slots used by the queue
 };
 
 /**
- * @brief 
+ * @brief
  *      Add a new process into the queue in a `sorted` manner. So that we can
  *      retrieve the process with least priority easily.
- * 
- * @note 
- *      Although MLQ algorithm never uses priorities within queue, just implement
- *      it - NK.
+ *
+ * @note
+ *      Although MLQ algorithm never uses priorities within queue, just
+ * implement it - NK.
  */
 void enqueue (struct queue_t *q, struct pcb_t *proc);
 
 /**
- * @brief 
- *      Get the process with the \b least priority number (aka \b highest priority), 
- *      and remove that element from the queue.
- * 
+ * @brief
+ *      Get the process with the \b least priority number (aka \b highest
+ * priority), and remove that element from the queue.
+ *
  * @return A ptr to the dequeued pcb_t
-*/
+ */
 struct pcb_t *dequeue (struct queue_t *q);
 
 /**
- * @brief 
+ * @brief
  *      Check if the queue is empty or not
- * 
+ *
  * @return 1 - empty queue, 0 - otherwise.
  */
 int empty (struct queue_t *q);
 
 /**
- * @brief 
+ * @brief
  *      Initialize queue
  */
-struct queue_t* init_queue();
+struct queue_t *init_queue ();
 
 /**
- * @brief 
+ * @brief
  *      Reclaim memory allocated for queue
- * 
+ *
  * @brief
  *      The pcb_t(s) controlled by this queue is NOT automatically destroyed.
  */
-void destroy_queue(struct queue_t *);
+void destroy_queue (struct queue_t *);
 
 #endif
