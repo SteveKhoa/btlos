@@ -47,6 +47,9 @@ get_second_lv (addr_t addr)
     return (addr >> OFFSET_LEN) - (get_first_lv (addr) << PAGE_LEN);
 }
 
+// If you find out this part should not be hide,
+// please contact NK and discuss.
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 /* Search for page table table from the a segment table */
 static struct trans_table_t *
 get_trans_table (addr_t index, // Segment level index
@@ -62,6 +65,7 @@ get_trans_table (addr_t index, // Segment level index
         }
     return NULL;
 }
+#endif
 
 /* Translate virtual address to physical address. If [virtual_addr] is valid,
  * return 1 and write its physical counterpart to [physical_addr].
@@ -101,6 +105,7 @@ translate (addr_t virtual_addr,   // Given virtual address
     return 0;
 }
 
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 addr_t
 alloc_mem (uint32_t size, struct pcb_t *proc)
 {
@@ -138,13 +143,16 @@ alloc_mem (uint32_t size, struct pcb_t *proc)
     pthread_mutex_unlock (&mem_lock);
     return ret_mem;
 }
+#endif
 
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 int
 free_mem (addr_t address, struct pcb_t *proc)
 {
     /* DO NOTHING HERE. This mem is obsoleted */
     return 0;
 }
+#endif
 
 int
 read_mem (addr_t address, struct pcb_t *proc, BYTE *data)

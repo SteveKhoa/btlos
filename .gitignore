@@ -2,5 +2,4 @@
 _.c
 test/*.d
 src/*.d
-input/
-output/
+NOTES.txt

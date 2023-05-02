@@ -2,9 +2,7 @@
  * @file queue.c
  * @category Implementation source code
  * @brief 
- *      Implementation from `queue.h` interface
- * 
- * 
+ *      Implementation from `queue.h` interface 
  */
 #include "queue.h"
 #include <stdio.h>
@@ -24,8 +22,8 @@ enqueue (struct queue_t *q, struct pcb_t *proc)
     /* TODO: put a new process to queue [q] */
     if(q->size < MAX_QUEUE_SIZE - 1)
     {
-        q->proc[q->size] = proc;
-        q->size++;
+        q->proc[q->size] = proc; // Put a proc at the front of the queue
+        q->size++; // Increase the cnt
     }
     
 }

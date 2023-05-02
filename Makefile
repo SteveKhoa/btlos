@@ -102,6 +102,7 @@ test-sched: $(EXT)/munit.c $(EXT)/munit.h
 
 clean-test:
 	rm -rf test/queue test/sample test/sched
+	rm -rf test/*.d
 	
 
 

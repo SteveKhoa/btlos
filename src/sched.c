@@ -214,7 +214,7 @@ put_proc (struct pcb_t *proc)
 
 
 /**
- * @brief Add an unfinished proc into queue
+ * @brief Add a new proc into queue
  * @attention This method is just to distinguish from putting an unfinished proc
  * back to queue. Two func basically behave the same, but separated to prevent
  * confusion while using the interface.
