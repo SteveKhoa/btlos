@@ -117,4 +117,6 @@ clean-test:
 # Please ignore if you are not interested
 
 _ : _.c $(deps)
-	$(MAKE) $(CFLAGS) $^ -o _
+	@$(MAKE) $(LFLAGS) $^ -o _
+	@./_
+	@rm -rf _ _.d
