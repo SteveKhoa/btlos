@@ -6,14 +6,26 @@
 
 #define MAX_QUEUE_SIZE 10
 #define MAX_INT 1000000
-/* Array-based queue */
+/**
+ * @brief Array-based queue. 
+ * Three attributes:
+ *      proc : a pointer to a stack-allocated contiguous array
+ *      size : dynamic size, a counter of processes. New processes
+ *              will be added at position size-th.
+ *      slots : number of round-robin quantum time spared for a queue.
+ * 
+ * @note This queue should be initialized and deinitialized with init_queue()
+ * and destroy_queue(). Any direct access to the attributes are deprecated.
+ * Since it is not safe to have any external code to access into the queue
+ * internals.
+ * 
+ */
 struct queue_t
 {
-    /* Array of procs */
-    struct pcb_t *proc[MAX_QUEUE_SIZE];
+    struct pcb_t *proc[MAX_QUEUE_SIZE]; // ptr to contiguous array
     int size; // Number of processes in queue, dynamically changes as the queue
               // grow
-    int slots; // Number of time slots dedicated to a queue
+    int slots; // Number of time slots used by the queue
 };
 
 /**

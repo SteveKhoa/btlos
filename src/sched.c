@@ -49,7 +49,8 @@ reset_slots (void)
 {
     unsigned long prio;
     for (prio = 0; prio < MAX_PRIO; prio++)
-        mlq_ready_queue[prio].slots = 0;
+        mlq_ready_queue[prio].slots = 0; // Reset the round-robin counter
+                                         // for each every queue
     current_prio = 0;
 }
 #endif
@@ -93,7 +94,7 @@ init_scheduler (void)
 void
 finish_scheduler (void)
 {
-    /* TO-DO */
+    pthread_mutex_destroy(&queue_lock);
 }
 
 #ifdef MLQ_SCHED
@@ -175,7 +176,7 @@ put_mlq_proc (struct pcb_t *proc)
      * adds a process to the MLQ policy according to its priority
      * @remark maybe, this func is for putting a not finished proc into the
      * queue.
-     * 
+     *
      * @remark NK agreed with your idea
      *
      */
@@ -190,7 +191,7 @@ add_mlq_proc (struct pcb_t *proc)
     /** TODO
      * @attention What is the difference between this and put_mlq_proc?
      * @remark maybe, this func is for adding a new proc into the queue.
-     * 
+     *
      * @remark NK agreed with your idea
      */
     pthread_mutex_lock (&queue_lock);
@@ -212,13 +213,12 @@ put_proc (struct pcb_t *proc)
     return put_mlq_proc (proc);
 }
 
-
 /**
  * @brief Add a new proc into queue
- * @attention This method is just to distinguish from putting an unfinished proc
- * back to queue. Two func basically behave the same, but separated to prevent
- * confusion while using the interface.
-*/
+ * @attention This method is just to distinguish from putting an unfinished
+ * proc back to queue. Two func basically behave the same, but separated to
+ * prevent confusion while using the interface.
+ */
 void
 add_proc (struct pcb_t *proc)
 {

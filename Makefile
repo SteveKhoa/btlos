@@ -21,7 +21,7 @@ vpath %.c $(SRC)
 vpath %.h $(INCLUDE)
 
 # Specify compiling command
-MAKE = $(CC) $(INC) -MP -MMD
+MAKE = $(CC) $(INC) -MP -MMD $(args)
 
 # Object files needed by modules
 MEM_OBJ = $(addprefix $(OBJ)/, paging.o mem.o cpu.o loader.o common.o)
