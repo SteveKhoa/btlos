@@ -75,7 +75,7 @@ translate (addr_t virtual_addr,   // Given virtual address
            addr_t *physical_addr, // Physical address to be returned
            struct pcb_t *proc)
 { // Process uses given virtual address
-
+#ifdef ALLOW_DEPRECATED
     /* Offset of the virtual address */
     addr_t offset = get_offset (virtual_addr);
     offset++;
@@ -102,13 +102,14 @@ translate (addr_t virtual_addr,   // Given virtual address
                     return 1;
                 }
         }
+#endif
     return 0;
 }
 
-#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 addr_t
 alloc_mem (uint32_t size, struct pcb_t *proc)
 {
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
     pthread_mutex_lock (&mem_lock);
     addr_t ret_mem = 0;
     /* DO NOTHING HERE. This mem is obsoleted */
@@ -142,17 +143,18 @@ alloc_mem (uint32_t size, struct pcb_t *proc)
         }
     pthread_mutex_unlock (&mem_lock);
     return ret_mem;
-}
 #endif
+    return 0;
+}
 
-#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 int
 free_mem (addr_t address, struct pcb_t *proc)
 {
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
     /* DO NOTHING HERE. This mem is obsoleted */
     return 0;
-}
 #endif
+}
 
 int
 read_mem (addr_t address, struct pcb_t *proc, BYTE *data)

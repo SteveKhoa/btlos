@@ -1,3 +1,9 @@
+/**
+ * @file mm.h
+ * @category Interface for memory management
+ * @brief Declarations and Macro definitions of all routines related to memory
+ * mapping.
+*/
 #ifndef MM_H
 
 #include "bitops.h"
@@ -139,6 +145,7 @@ int pgwrite (struct pcb_t *proc,   // Process executing the instruction
              BYTE data,            // Data to be wrttien into memory
              uint32_t destination, // Index of destination register
              uint32_t offset);
+             
 /* Local VM prototypes */
 struct vm_rg_struct *get_symrg_byid (struct mm_struct *mm, int rgid);
 int validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
@@ -156,6 +163,7 @@ int MEMPHY_read (struct memphy_struct *mp, int addr, BYTE *value);
 int MEMPHY_write (struct memphy_struct *mp, int addr, BYTE data);
 int MEMPHY_dump (struct memphy_struct *mp);
 int init_memphy (struct memphy_struct *mp, int max_size, int randomflg);
+
 /* DEBUG */
 int print_list_fp (struct framephy_struct *fp);
 int print_list_rg (struct vm_rg_struct *rg);

@@ -1,7 +1,10 @@
+/**
+ * @file common.h
+ * @brief Define structs, macros and routine could be used by every source files.
+ * 
+ */
 #ifndef COMMON_H
 #define COMMON_H
-
-/* Define structs and routine could be used by every source files */
 
 #include <stdint.h>
 

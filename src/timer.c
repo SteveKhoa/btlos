@@ -2,7 +2,7 @@
  * @file timer.c
  * @category Implementation source code
  * @brief 
- *      Not sure what is this right now.
+ *      Belongs to the entire OS.
  */
 #include "timer.h"
 #include <stdio.h>

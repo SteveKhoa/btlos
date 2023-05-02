@@ -52,16 +52,13 @@ struct vm_area_struct
     struct vm_area_struct *vm_next;
 };
 
-/*
- * Memory management struct
- */
+/**
+ * @brief A memory area (same as memory segment).
+*/
 struct mm_struct
 {
-    /**
-     * // no docs here currently
-    */
-    uint32_t *pgd;
-    // page directory
+    /* The head ptr to the array of destinations (uint32_t) on Physical Memory */
+    uint32_t *pgd; // Page directory (page table)
 
     /**
      * Head ptr of the Linked-list of Memory Areas.
@@ -69,13 +66,13 @@ struct mm_struct
     struct vm_area_struct *mmap;
 
     /**
-     * Symbol region table.
-     * Currently we support a fixed number of symbol.
+     * Symbol region table. Currently we support a fixed number of symbol.
+     * Maps `index` --> `rg`.
     */
     struct vm_rg_struct symrgtbl[PAGING_MAX_SYMTBL_SZ];
 
     /* list of free page */
-    struct pgn_t *fifo_pgn; // Should be deprecated
+    struct pgn_t *fifo_pgn; // DEPRECATED
 };
 
 /*
