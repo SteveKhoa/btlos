@@ -49,6 +49,9 @@ struct cpu_args
     int id;
 };
 
+/**
+ * @brief A separate thread as an independent running instance, for a CORE.
+*/
 static void *
 cpu_routine (void *args)
 {
@@ -119,6 +122,7 @@ cpu_routine (void *args)
     pthread_exit (NULL);
 }
 
+/* Loader as an independent running instance, for a LOADER */
 static void *
 ld_routine (void *args)
 {
@@ -164,6 +168,7 @@ ld_routine (void *args)
     pthread_exit (NULL);
 }
 
+/* Subroutine reading the configuration and */
 static void
 read_config (const char *path)
 {
@@ -301,7 +306,6 @@ main (int argc, char *argv[])
     pthread_join (ld, NULL);
 
     /* Stop timer */
-    /*fjaksdhfkjahsdkjfhaksdjfhkjasdhkjf*/
     stop_timer ();
 
     return 0;

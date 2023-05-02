@@ -1,3 +1,9 @@
+/**
+ * @file os-mm.h
+ * @category Interface header file
+ * @brief Declaration for some Memory-related structures and Macros. Not used
+ * anywhere but to be included in common.h
+*/
 #ifndef OSMM_H
 #define OSMM_H
 
@@ -7,7 +13,7 @@
 
 typedef char BYTE;
 typedef unsigned int uint32_t;
-typedef uint32_t addr_t;
+typedef uint32_t addr_t; // 32-bit sequence, as unsigned integer.
 
 struct pgn_t
 {
@@ -89,15 +95,15 @@ struct framephy_struct
 
 struct memphy_struct
 {
-    /* Basic field of data and size */
+    /* The array of BYTES */
     BYTE *storage;
     int maxsz;
 
     /* Sequential device fields */
-    int rdmflg;
+    int rdmflg; // Random access scheme (random flag)
     int cursor;
 
-    /* Management structure */
+    /* List of free frames and used frames (Linked-list) */
     struct framephy_struct *free_fp_list;
     struct framephy_struct *used_fp_list;
 };

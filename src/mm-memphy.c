@@ -16,7 +16,7 @@
 #include <stdlib.h>
 
 /*
- *  MEMPHY_mv_csr - move MEMPHY cursor
+ *  Increase the cursor to [offset].
  *  @mp: memphy struct
  *  @offset: offset
  */
@@ -37,7 +37,8 @@ MEMPHY_mv_csr (struct memphy_struct *mp, int offset)
 }
 
 /*
- *  MEMPHY_seq_read - read MEMPHY device
+ *  Let [value] point to the BYTE at address [addr], using sequential increment.
+ *  To simulate sequential read.
  *  @mp: memphy struct
  *  @addr: address
  *  @value: obtained value
@@ -58,7 +59,8 @@ MEMPHY_seq_read (struct memphy_struct *mp, int addr, BYTE *value)
 }
 
 /*
- *  MEMPHY_read read MEMPHY device
+ *  Let [value] point to the BYTE at address [addr], using direct access. To
+ *  simulate Random access.
  *  @mp: memphy struct
  *  @addr: address
  *  @value: obtained value

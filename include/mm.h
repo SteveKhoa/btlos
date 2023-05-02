@@ -9,7 +9,7 @@
 #include "bitops.h"
 #include "common.h"
 
-/* CPU Bus definition */
+/* CPU Bus definition  - Table 1 */
 #define PAGING_CPU_BUS_WIDTH 22  /* 22bit bus - MAX SPACE 4MB */
 #define PAGING_PAGESZ 256        /* 256B or 8-bits PAGE NUMBER */
 #define PAGING_MEMRAMSZ BIT (10) /* 1MB */
@@ -21,7 +21,8 @@
 #define PAGING_MAX_PGN (DIV_ROUND_UP (PAGING_CPU_BUS_WIDTH, PAGING_PAGESZ))
 
 #define PAGING_SBRK_INIT_SZ PAGING_PAGESZ
-/* PTE BIT */
+
+/* PTE (Page table entry) BIT - Figure 5 */
 #define PAGING_PTE_PRESENT_MASK BIT (31)
 #define PAGING_PTE_SWAPPED_MASK BIT (30)
 #define PAGING_PTE_RESERVE_MASK BIT (29)
@@ -36,12 +37,15 @@
 /* USRNUM */
 #define PAGING_PTE_USRNUM_LOBIT 15
 #define PAGING_PTE_USRNUM_HIBIT 27
+
 /* FPN */
 #define PAGING_PTE_FPN_LOBIT 0
 #define PAGING_PTE_FPN_HIBIT 12
+
 /* SWPTYP */
 #define PAGING_PTE_SWPTYP_LOBIT 0
 #define PAGING_PTE_SWPTYP_HIBIT 4
+
 /* SWPOFF */
 #define PAGING_PTE_SWPOFF_LOBIT 5
 #define PAGING_PTE_SWPOFF_HIBIT 25

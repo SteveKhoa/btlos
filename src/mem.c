@@ -1,12 +1,20 @@
-
+/**
+ * @file mem.h
+ * @category Implementation source code
+ * @brief Implementation of mem.h funcs.
+ * 
+ * @attention It seems to be designed with multiple-segmentation page translation.
+*/
 #include "mem.h"
 #include "stdlib.h"
 #include "string.h"
 #include <pthread.h>
 #include <stdio.h>
 
+/* Array of bytes (RAM Memory) */
 static BYTE _ram[RAM_SIZE];
 
+/* Status of a frame */
 static struct
 {
     uint32_t proc; // ID of process currently uses this page
@@ -21,15 +29,21 @@ static pthread_mutex_t mem_lock;
 void
 init_mem (void)
 {
-    memset (_mem_stat, 0, sizeof (*_mem_stat) * NUM_PAGES);
-    memset (_ram, 0, sizeof (BYTE) * RAM_SIZE);
+    memset (_mem_stat, 0,
+            sizeof (*_mem_stat) * NUM_PAGES);   // Setting _mem_stat to 0
+    memset (_ram, 0, sizeof (BYTE) * RAM_SIZE); // Setting the _ram to 0
     pthread_mutex_init (&mem_lock, NULL);
 }
+
+// If you find out this part should not be hide,
+// please contact NK and discuss.
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 
 /* get offset of the virtual address */
 static addr_t
 get_offset (addr_t addr)
 {
+    /* Get the first OFFSET_LEN bits in address */
     return addr & ~((~0U) << OFFSET_LEN);
 }
 
@@ -37,6 +51,7 @@ get_offset (addr_t addr)
 static addr_t
 get_first_lv (addr_t addr)
 {
+    /* */
     return addr >> (OFFSET_LEN + PAGE_LEN);
 }
 
@@ -47,9 +62,6 @@ get_second_lv (addr_t addr)
     return (addr >> OFFSET_LEN) - (get_first_lv (addr) << PAGE_LEN);
 }
 
-// If you find out this part should not be hide,
-// please contact NK and discuss.
-#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 /* Search for page table table from the a segment table */
 static struct trans_table_t *
 get_trans_table (addr_t index, // Segment level index
@@ -65,7 +77,6 @@ get_trans_table (addr_t index, // Segment level index
         }
     return NULL;
 }
-#endif
 
 /* Translate virtual address to physical address. If [virtual_addr] is valid,
  * return 1 and write its physical counterpart to [physical_addr].
@@ -75,7 +86,6 @@ translate (addr_t virtual_addr,   // Given virtual address
            addr_t *physical_addr, // Physical address to be returned
            struct pcb_t *proc)
 { // Process uses given virtual address
-#ifdef ALLOW_DEPRECATED
     /* Offset of the virtual address */
     addr_t offset = get_offset (virtual_addr);
     offset++;
@@ -102,14 +112,12 @@ translate (addr_t virtual_addr,   // Given virtual address
                     return 1;
                 }
         }
-#endif
     return 0;
 }
 
 addr_t
 alloc_mem (uint32_t size, struct pcb_t *proc)
 {
-#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
     pthread_mutex_lock (&mem_lock);
     addr_t ret_mem = 0;
     /* DO NOTHING HERE. This mem is obsoleted */
@@ -143,7 +151,6 @@ alloc_mem (uint32_t size, struct pcb_t *proc)
         }
     pthread_mutex_unlock (&mem_lock);
     return ret_mem;
-#endif
     return 0;
 }
 
@@ -185,6 +192,9 @@ write_mem (addr_t address, struct pcb_t *proc, BYTE data)
             return 1;
         }
 }
+#endif // We need to discuss more about this part
+// This part implements a very weird page translation scheme, what is first layer,
+// second layer?
 
 void
 dump (void)
