@@ -1,3 +1,7 @@
+// This file does not relate anything to our project.
+// Please ignore this file
+
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 /**
  * @file mem.h
  * @category Interface file
@@ -60,5 +64,7 @@ int write_mem (addr_t address, struct pcb_t *proc, BYTE data);
  *  3. its next page.
 */
 void dump (void);
+
+#endif
 
 #endif

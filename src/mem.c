@@ -1,9 +1,16 @@
+// This file does not relate anything to our project.
+// Please ignore this file
+
+// If you find out this part should not be hide,
+// please contact NK and discuss.
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 /**
  * @file mem.h
  * @category Implementation source code
- * @brief Implementation of mem.h funcs.
+ * @brief Implementation of pure RAM and its operation. Distinguish with
+ * mm-memphy which is a manager, not pure physical memory.
  * 
- * @attention It seems to be designed with multiple-segmentation page translation.
+ * @note THIS FILE IS DEPRECATED.
 */
 #include "mem.h"
 #include "stdlib.h"
@@ -188,12 +195,6 @@ write_mem (addr_t address, struct pcb_t *proc, BYTE data)
             return 1;
         }
 }
-// If you find out this part should not be hide,
-// please contact NK and discuss.
-#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
-#endif // We need to discuss more about this part
-// This part implements a very weird page translation scheme, what is first layer,
-// second layer?
 
 void
 dump (void)
@@ -221,3 +222,4 @@ dump (void)
                 }
         }
 }
+#endif

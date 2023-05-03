@@ -3,7 +3,9 @@
         80
     ],
     "files.associations": {
-        "__locale": "c"
+        "__locale": "c",
+        "mm.h": "c",
+        "os-mm.h": "c"
     }
 
 }
