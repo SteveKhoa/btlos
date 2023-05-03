@@ -101,8 +101,16 @@ test-sched: $(EXT)/munit.c $(EXT)/munit.h
 
 	@./test/sched
 
+test-memphy: $(EXT)/munit.c $(EXT)/munit.h
+	@$(MAKE) -o test/memphy \
+	test/memphy.c src/mm-memphy.c src/common.c \
+	-Iinclude -I$(EXT) $(EXT)/munit.c
+
+	@./test/memphy
+
 clean-test:
-	rm -rf test/queue test/sample test/sched
+	rm -rf 	test/queue test/sample test/sched \
+		  	test/memphy
 	rm -rf test/*.d
 	
 
