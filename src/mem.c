@@ -35,10 +35,6 @@ init_mem (void)
     pthread_mutex_init (&mem_lock, NULL);
 }
 
-// If you find out this part should not be hide,
-// please contact NK and discuss.
-#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
-
 /* get offset of the virtual address */
 static addr_t
 get_offset (addr_t addr)
@@ -192,6 +188,9 @@ write_mem (addr_t address, struct pcb_t *proc, BYTE data)
             return 1;
         }
 }
+// If you find out this part should not be hide,
+// please contact NK and discuss.
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 #endif // We need to discuss more about this part
 // This part implements a very weird page translation scheme, what is first layer,
 // second layer?
