@@ -23,6 +23,8 @@ calc (struct pcb_t *proc)
     return ((unsigned long)proc & 0UL);
 }
 
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
+
 /**
  *      Claim `size` bytes in memory, and store the address to register
  * `reg_index`.
@@ -103,6 +105,7 @@ write (struct pcb_t *proc,   // Process executing the instruction
     // [destination] + [offset]
     return write_mem (proc->regs[destination] + offset, proc, data);
 }
+#endif // ALLOW_DEPRECATED
 
 /**
  *      Execute AN instruction in the process and increase the program counter

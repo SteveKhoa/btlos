@@ -69,6 +69,7 @@ clean:
 	@rm -f $(OBJ)/*.o os sched mem
 	@find . -type f -name '*.d'  -delete
 	@rm -r $(OBJ)
+	@rm -rf _
 
 
 
@@ -119,4 +120,4 @@ clean-test:
 _ : _.c $(deps)
 	@$(MAKE) $(LFLAGS) $^ -o _
 	@./_
-	@rm -rf _ _.d
+	@rm -rf _.d

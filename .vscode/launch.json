@@ -13,6 +13,15 @@
                 "input/os_0_mlq_paging"
             ],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "LLDB Debug _.c",
+            "program": "${workspaceFolder}/_",
+            "args": [
+            ],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

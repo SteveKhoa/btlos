@@ -1,10 +1,10 @@
 /**
  * @file mm-memphy.c
  * @category Implementation source code
- * @brief 
- *      Implementation of physical memory operations.
+ * @brief Implementation of physical memory operations. Every memphy_struct is
+ * a physical storage device. Note that we use this instead of _ram in mem.c &
+ * mem.h because they are legacy and irrelevant to our project.
  */
-
 
 // #ifdef MM_PAGING
 /*
@@ -37,8 +37,8 @@ MEMPHY_mv_csr (struct memphy_struct *mp, int offset)
 }
 
 /*
- *  Let [value] point to the BYTE at address [addr], using sequential increment.
- *  To simulate sequential read.
+ *  Let [value] point to the BYTE at address [addr], using sequential
+ * increment. To simulate sequential read.
  *  @mp: memphy struct
  *  @addr: address
  *  @value: obtained value
@@ -198,7 +198,15 @@ MEMPHY_put_freefp (struct memphy_struct *mp, int fpn)
 }
 
 /*
- *  Init MEMPHY struct
+ *
+ */
+/**
+ * @brief Initialize Physical Memory Structure (Device). Can be used to
+ * simulate RAM or SWP device.
+ * @param mp NULL ptr
+ * @param max_size maximum size of the phymem structure (bytes)
+ * @param randomflg 1 if randomly accessed, 0 if sequentially
+ * accessed
  */
 int
 init_memphy (struct memphy_struct *mp, int max_size, int randomflg)
@@ -206,7 +214,8 @@ init_memphy (struct memphy_struct *mp, int max_size, int randomflg)
     mp->storage = (BYTE *)malloc (max_size * sizeof (BYTE));
     mp->maxsz = max_size;
 
-    MEMPHY_format (mp, PAGING_PAGESZ);
+    MEMPHY_format (mp, PAGING_PAGESZ); // Config free_fp_listx
+    mp->used_fp_list = NULL;           // Config used_fp_list
 
     mp->rdmflg = (randomflg != 0) ? 1 : 0;
 
