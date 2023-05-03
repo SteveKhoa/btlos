@@ -9,7 +9,7 @@ OBJ = obj
 INCLUDE = include
 EXT = ext
 
-# Compiler specification
+# Compiler specification specification
 CC = gcc
 DEBUG = -g
 CFLAGS = -Wall -c $(DEBUG) # compiling flags
