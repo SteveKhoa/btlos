@@ -3,7 +3,7 @@
  * @category Interface header file
  * @brief Declaration for some Memory-related structures and Macros. Not used
  * anywhere but to be included in common.h
-*/
+ */
 #ifndef OSMM_H
 #define OSMM_H
 
@@ -23,11 +23,11 @@ struct pgn_t
 
 /**
  * @brief
- *          Linked-list based. Control the data 
+ *          Linked-list based. Control the data
  *          of a dynamically allocated variable.
- * 
+ *
  *          See Figure: 3 for more details
-*/
+ */
 struct vm_rg_struct
 {
     unsigned long rg_start;
@@ -38,10 +38,10 @@ struct vm_rg_struct
 
 /**
  * @brief
- *          Linked-list based. Area can contain two subset structures: 
- *          free regions (freerg), memory region (vm_rg). See Figure: 3 for more 
- *          details
-*/
+ *          Linked-list based. Area can contain two subset structures:
+ *          free regions (freerg), memory region (vm_rg). See Figure: 3 for
+ * more details
+ */
 struct vm_area_struct
 {
     unsigned long vm_id;
@@ -60,29 +60,30 @@ struct vm_area_struct
 
 /**
  * @brief A memory area (same as memory segment).
-*/
+ */
 struct mm_struct
 {
-    /* The head ptr to the array of destinations (uint32_t) on Physical Memory */
+    /* The head ptr to the array of destinations (uint32_t) on Physical Memory
+     */
     uint32_t *pgd; // Page directory (page table)
 
     /**
      * Head ptr of the Linked-list of Memory Areas.
-    */
+     */
     struct vm_area_struct *mmap;
 
     /**
      * Symbol region table. Currently we support a fixed number of symbol.
      * Maps `index` --> `rg`.
-    */
+     */
     struct vm_rg_struct symrgtbl[PAGING_MAX_SYMTBL_SZ];
 
     /* list of free page */
     struct pgn_t *fifo_pgn; // DEPRECATED
 };
 
-/*
- * FRAME/MEM PHY struct
+/**
+ * @brief Only stores the id of a frame (fpn), nothing serious.
  */
 struct framephy_struct
 {

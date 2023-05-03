@@ -3,3 +3,4 @@ _.c
 test/*.d
 src/*.d
 NOTES.txt
+*.dSYM

@@ -14,15 +14,27 @@
 
 #include "mm.h"
 #include <stdlib.h>
+#include <stdio.h>
 
-/*
- *  Increase the cursor to [offset].
- *  @mp: memphy struct
- *  @offset: offset
+/**
+ * @brief Increase the [cursor] of [mp] to [offset].
+ * @param mp target memphy structure
+ * @param offset value
+ * @return 0 if successful, -1 if invalid offset
  */
 int
 MEMPHY_mv_csr (struct memphy_struct *mp, int offset)
 {
+    if (mp == NULL)
+        return -1;
+
+    // if (offset < 0 || offset >= mp->maxsz)
+    //     return -1;
+    // We dont check for offset here because any value,
+    // exceeding the maxsz will stop sequential traversal.
+    // That is one of the advantage of sequential over random,
+    // it never goes out of range.
+
     int numstep = 0;
 
     mp->cursor = 0;
@@ -36,12 +48,13 @@ MEMPHY_mv_csr (struct memphy_struct *mp, int offset)
     return 0;
 }
 
-/*
- *  Let [value] point to the BYTE at address [addr], using sequential
- * increment. To simulate sequential read.
- *  @mp: memphy struct
- *  @addr: address
- *  @value: obtained value
+/**
+ * @brief Let [value] point to the BYTE at address [addr], using sequential
+ * increment (move cursor), to simulate sequential read.
+ * @param mp target memphy structure
+ * @param addr address
+ * @param value ptr to BYTE (char) value at [addr]
+ * @return 0 if successful, -1 if error
  */
 int
 MEMPHY_seq_read (struct memphy_struct *mp, int addr, BYTE *value)
@@ -49,7 +62,10 @@ MEMPHY_seq_read (struct memphy_struct *mp, int addr, BYTE *value)
     if (mp == NULL)
         return -1;
 
-    if (!mp->rdmflg)
+    // if (addr < 0 || addr >= mp->maxsz)
+    //     return -1;
+
+    if (mp->rdmflg)
         return -1; /* Not compatible mode for sequential read */
 
     MEMPHY_mv_csr (mp, addr);
@@ -58,12 +74,13 @@ MEMPHY_seq_read (struct memphy_struct *mp, int addr, BYTE *value)
     return 0;
 }
 
-/*
- *  Let [value] point to the BYTE at address [addr], using direct access. To
- *  simulate Random access.
- *  @mp: memphy struct
- *  @addr: address
- *  @value: obtained value
+/**
+ * @brief Let [value] point to the BYTE at address [addr], using direct access,
+ * to simulate Random access.
+ * @param mp target memphy structure
+ * @param addr address
+ * @param value ptr to BYTE (char) value at [addr]
+ * @return 0 if successful, -1 if error
  */
 int
 MEMPHY_read (struct memphy_struct *mp, int addr, BYTE *value)
@@ -72,18 +89,24 @@ MEMPHY_read (struct memphy_struct *mp, int addr, BYTE *value)
         return -1;
 
     if (mp->rdmflg)
-        *value = mp->storage[addr];
+        {
+            if (addr < 0 || addr >= mp->maxsz)
+                return -1;
+            *value = mp->storage[addr];
+        }
     else /* Sequential access device */
         return MEMPHY_seq_read (mp, addr, value);
 
     return 0;
 }
 
-/*
- *  MEMPHY_seq_write - write MEMPHY device
- *  @mp: memphy struct
- *  @addr: address
- *  @data: written data
+/**
+ * @brief Write [value] to [mp] at address [addr], using sequential cursor
+ * move.
+ * @param mp
+ * @param addr
+ * @param value
+ * @return 0 if succesful, -1 if error.
  */
 int
 MEMPHY_seq_write (struct memphy_struct *mp, int addr, BYTE value)
@@ -92,7 +115,11 @@ MEMPHY_seq_write (struct memphy_struct *mp, int addr, BYTE value)
     if (mp == NULL)
         return -1;
 
-    if (!mp->rdmflg)
+    // if (addr < 0 || addr >= mp->maxsz)
+    //     return -1;
+    // We don't check for address here because it is sequential traversal
+
+    if (mp->rdmflg)
         return -1; /* Not compatible mode for sequential read */
 
     MEMPHY_mv_csr (mp, addr);
@@ -101,11 +128,12 @@ MEMPHY_seq_write (struct memphy_struct *mp, int addr, BYTE value)
     return 0;
 }
 
-/*
- *  MEMPHY_write-write MEMPHY device
- *  @mp: memphy struct
- *  @addr: address
- *  @data: written data
+/**
+ * @brief Write [value] to [mp] at address [addr], using direct mem access.
+ * @param mp
+ * @param addr
+ * @param value
+ * @return 0 if succesful, -1 if error.
  */
 int
 MEMPHY_write (struct memphy_struct *mp, int addr, BYTE data)
@@ -113,8 +141,15 @@ MEMPHY_write (struct memphy_struct *mp, int addr, BYTE data)
     if (mp == NULL)
         return -1;
 
+    if (addr < 0 || addr >= mp->maxsz)
+        return -1;
+
     if (mp->rdmflg)
-        mp->storage[addr] = data;
+        {
+            if (addr < 0 || addr >= mp->maxsz)
+                return -1;
+            mp->storage[addr] = data;
+        }
     else /* Sequential access device */
         return MEMPHY_seq_write (mp, addr, data);
 
@@ -124,6 +159,13 @@ MEMPHY_write (struct memphy_struct *mp, int addr, BYTE data)
 /*
  *  MEMPHY_format-format MEMPHY device
  *  @mp: memphy struct
+ */
+/**
+ * @brief Initialized a linked list of free frames for free_fp_list. The size
+ * of this linked list is [pagesz].
+ * @param mp target memphy structure
+ * @param pagesz the size of each frame
+ * @return 0 if successful, -1 if error
  */
 int
 MEMPHY_format (struct memphy_struct *mp, int pagesz)
@@ -136,6 +178,7 @@ MEMPHY_format (struct memphy_struct *mp, int pagesz)
     if (numfp <= 0)
         return -1;
 
+    /* Just routine to generate a linked list */
     /* Init head of free framephy list */
     fst = malloc (sizeof (struct framephy_struct));
     fst->fpn = iter;
@@ -174,16 +217,6 @@ MEMPHY_get_freefp (struct memphy_struct *mp, int *retfpn)
 }
 
 int
-MEMPHY_dump (struct memphy_struct *mp)
-{
-    /*TODO dump memphy contnt mp->storage
-     *     for tracing the memory content
-     */
-
-    return 0;
-}
-
-int
 MEMPHY_put_freefp (struct memphy_struct *mp, int fpn)
 {
     struct framephy_struct *fp = mp->free_fp_list;
@@ -193,6 +226,16 @@ MEMPHY_put_freefp (struct memphy_struct *mp, int fpn)
     newnode->fpn = fpn;
     newnode->fp_next = fp;
     mp->free_fp_list = newnode;
+
+    return 0;
+}
+
+int
+MEMPHY_dump (struct memphy_struct *mp)
+{
+    /*TODO dump memphy contnt mp->storage
+     *     for tracing the memory content
+     */
 
     return 0;
 }
