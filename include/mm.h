@@ -139,6 +139,7 @@ int __write (struct pcb_t *caller, int vmaid, int rgid, int offset,
 int init_mm (struct mm_struct *mm, struct pcb_t *caller);
 
 /* VM prototypes */
+
 int pgalloc (struct pcb_t *proc, uint32_t size, uint32_t reg_index);
 int pgfree_data (struct pcb_t *proc, uint32_t reg_index);
 int pgread (struct pcb_t *proc, // Process executing the instruction
@@ -151,6 +152,7 @@ int pgwrite (struct pcb_t *proc,   // Process executing the instruction
              uint32_t offset);
              
 /* Local VM prototypes */
+
 struct vm_rg_struct *get_symrg_byid (struct mm_struct *mm, int rgid);
 int validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
                               int vmaend);
@@ -161,6 +163,7 @@ int find_victim_page (struct mm_struct *mm, int *pgn);
 struct vm_area_struct *get_vma_by_num (struct mm_struct *mm, int vmaid);
 
 /* MEM/PHY protypes */
+
 int MEMPHY_get_freefp (struct memphy_struct *mp, int *fpn);
 int MEMPHY_put_freefp (struct memphy_struct *mp, int fpn);
 int MEMPHY_read (struct memphy_struct *mp, int addr, BYTE *value);
