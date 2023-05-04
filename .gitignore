@@ -8,3 +8,7 @@ src/*.d
 NOTES.txt
 *.dSYM
 /.vscode
+/test/sched
+/test/memphy
+/test/queue
+/test/sample
