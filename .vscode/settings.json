@@ -3,11 +3,6 @@
         80
     ],
     "files.associations": {
-<<<<<<< HEAD
-        "__locale": "c",
-        "mm.h": "c",
-        "os-mm.h": "c"
-=======
         "cpu.h": "c",
         "stdlib.h": "c",
         "algorithm": "c",
@@ -22,6 +17,5 @@
         "complex": "c",
         "new": "c",
         "sched.h": "c"
->>>>>>> parent of 6019ca6... Add debug configuration for vscode, add launch.json and modify setting.json
     }
 }
