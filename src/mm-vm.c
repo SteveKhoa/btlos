@@ -38,11 +38,6 @@ enlist_vm_freerg_list (struct mm_struct *mm, struct vm_rg_struct rg_elmt)
     return 0;
 }
 
-/*get_vma_by_num - get vm area by numID
- *@mm: memory region
- *@vmaid: ID vm area to alloc memory region
- *
- */
 /**
  * @brief Get memory area by `vmaid`.
  * @param mm The list of areas to get memory area from
@@ -69,11 +64,6 @@ get_vma_by_num (struct mm_struct *mm, int vmaid)
     return pvma;
 }
 
-/*get_symrg_byid - get mem region by region ID
- *@mm: memory region
- *@rgid: region ID act as symbol index of variable
- *
- */
 /**
  * @brief Get memory region through Symbol table
  * @param mm The list of areas to get the rg from
@@ -163,11 +153,6 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
     return 0;
 }
 
-/*pgalloc - PAGING-based allocate a region memory
- *@proc:  Process executing the instruction
- *@size: allocated size
- *@reg_index: memory region ID (used to identify variable in symbole table)
- */
 /**
  * @brief
  * @param caller The process requesting the page alloc
@@ -195,12 +180,11 @@ pgfree_data (struct pcb_t *proc, uint32_t reg_index)
     return __free (proc, 0, reg_index);
 }
 
-/*pg_getpage - get the page in ram
- *@mm: memory region
- *@pagenum: PGN
- *@framenum: return FPN
- *@caller: caller
- *
+/**
+ * @brief Mappping the page number [pgn] to physical frame number [fpn]. This
+ * function tries to get the frame number [fpn], by initializing a page entry,
+ * swapping from MEMSWP, or replacing pages if needed.
+ * @return 0 if succesful and fpn is updated; -1 if paging failed.
  */
 int
 pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
@@ -268,11 +252,11 @@ pg_getval (struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
     return 0;
 }
 
-/*pg_setval - write value to given offset
- *@mm: memory region
- *@addr: virtual address to acess
- *@value: value
- *
+/**
+ * @brief Request the physical memory frame associated with address [addr] to
+ * update its value to [value]. The physical memory will be modified after this
+ * function call.
+ * @return 0 if successful; -1 if paging failed.
  */
 int
 pg_setval (struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
@@ -296,7 +280,7 @@ pg_setval (struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
  *@caller: caller
  *@vmaid: ID vm area to alloc memory region
  *@offset: offset to acess in memory region
- *@rgid: memory region ID (used to identify variable in symbole table)
+ *@rgid: memory region ID (used to identify variable in symbol table)
  *@size: allocated size
  *
  */
@@ -337,13 +321,10 @@ pgread (struct pcb_t *proc, // Process executing the instruction
     return val;
 }
 
-/*__write - write a region memory
- *@caller: caller
- *@vmaid: ID vm area to alloc memory region
- *@offset: offset to acess in memory region
- *@rgid: memory region ID (used to identify variable in symbole table)
- *@size: allocated size
- *
+/**
+ * @brief Ensure the validity of [rgid] and issue the associated page to update
+ * its frame's value.
+ * @note Explicit use of this function is DEPRECATED.
  */
 int
 __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
@@ -360,7 +341,17 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
     return 0;
 }
 
-/*pgwrite - PAGING-based write a region memory */
+/**
+ * @brief Paging-based memory write. First, it decodes the page number by
+ * analyzing the [offset] (as virtual address). After that, it uses
+ * paging-operations to get the corresponding physical address (pg_setval).
+ * Finally, it issues the MEMPHY to update the corresponding frame
+ * (MEMPHY_write).
+ * @param proc the process requesting the write
+ * @param data BYTE (char) to be written
+ * @param destination region id
+ * @param offset offset of Virtual Memory Area.
+ */
 int
 pgwrite (struct pcb_t *proc,   // Process executing the instruction
          BYTE data,            // Data to be wrttien into memory
@@ -368,7 +359,8 @@ pgwrite (struct pcb_t *proc,   // Process executing the instruction
          uint32_t offset)
 {
 #ifdef IODUMP
-    printf ("write region=%d offset=%d value=%d\n", destination, offset, data);
+    printf ("write val=%d ==> region=%d,offset=%d\n", data, destination,
+            offset);
 #ifdef PAGETBL_DUMP
     print_pgtbl (proc, 0, -1); // print max TBL
 #endif
@@ -449,11 +441,12 @@ validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
     return 0;
 }
 
-/*inc_vma_limit - increase vm area limits to reserve space for new variable
- *@caller: caller
- *@vmaid: ID vm area to alloc memory region
- *@inc_sz: increment size
- *
+/**
+ * @brief Increase vm_end in Virtual area [vmaid] in process [caller].
+ * @param caller the process requesting increment
+ * @param vmaid the id of Virtual Memory Area
+ * @param inc_sz size of increment
+ * @return 0 if sucessful; -1 if areas overlapped or mapping to memphy failed.
  */
 int
 inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
@@ -483,10 +476,11 @@ inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
     return 0;
 }
 
-/*find_victim_page - find victim page
- *@caller: caller
- *@pgn: return page number
- *
+/**
+ * @brief Find a victim page (most likely to be swapped out) in page directory
+ * of [mm].
+ * @param mm memory mapping structure
+ * @param retpgn suggested victim page
  */
 int
 find_victim_page (struct mm_struct *mm, int *retpgn)

@@ -15,6 +15,9 @@ typedef char BYTE;
 typedef unsigned int uint32_t;
 typedef uint32_t addr_t; // 32-bit sequence, as unsigned integer.
 
+/**
+ * @brief Only stores the id of a page (pgn), nothing serious.
+ */
 struct pgn_t
 {
     int pgn;
@@ -59,7 +62,8 @@ struct vm_area_struct
 };
 
 /**
- * @brief A memory area (same as memory segment).
+ * @brief Memory mapping. Wrapper structure of Virtual Memory and Page
+ * directory (page table).
  */
 struct mm_struct
 {

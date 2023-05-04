@@ -156,10 +156,6 @@ MEMPHY_write (struct memphy_struct *mp, int addr, BYTE data)
     return 0;
 }
 
-/*
- *  MEMPHY_format-format MEMPHY device
- *  @mp: memphy struct
- */
 /**
  * @brief Initialized a linked list of free frames for free_fp_list. The size
  * of this linked list is [pagesz].
@@ -240,9 +236,6 @@ MEMPHY_dump (struct memphy_struct *mp)
     return 0;
 }
 
-/*
- *
- */
 /**
  * @brief Initialize Physical Memory Structure (Device). Can be used to
  * simulate RAM or SWP device.

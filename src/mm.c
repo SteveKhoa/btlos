@@ -2,7 +2,7 @@
  * @file mm.c
  * @category Implementation source code
  * @brief 
- *      Implementation of overall memory management operations.
+ *      Implementation of Page-directory operations
  */
 
 // #ifdef MM_PAGING
