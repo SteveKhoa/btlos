@@ -57,7 +57,6 @@ cpu_routine (void *args)
 {
     struct timer_id_t *timer_id = ((struct cpu_args *)args)->timer_id;
     int id = ((struct cpu_args *)args)->id;
-    printf ("CPU %d turned on!\n", id);
     /* Check for new process in ready queue */
     int time_left = 0;
     struct pcb_t *proc = NULL;
@@ -80,7 +79,6 @@ cpu_routine (void *args)
                     proc = get_proc ();
                     if (proc == NULL)
                         {
-                            printf ("\t... CPU %d idle...\n", id);
                             next_slot (timer_id);
                             continue; /* First load failed. skip dummy load */
                         }
@@ -121,7 +119,6 @@ cpu_routine (void *args)
                 {
                     /* There may be new processes to run in
                      * next time slots, just skip current slot */
-                    printf ("\t...CPU %d is hungry...\n", id);
                     next_slot (timer_id);
                     continue;
                 }
@@ -158,7 +155,7 @@ ld_routine (void *args)
     struct timer_id_t *timer_id = (struct timer_id_t *)args;
 #endif
     int i = 0;
-    printf ("ld_routine: Loader turn on!\n");
+    printf ("ld_routine\n");
     while (i < num_processes)
         {
             struct pcb_t *proc = load (ld_processes.path[i]);
@@ -186,7 +183,6 @@ ld_routine (void *args)
     free (ld_processes.path);
     free (ld_processes.start_time);
     done = 1;
-    printf ("ld_routine: Loader turn off.\n");
     detach_event (timer_id);
     pthread_exit (NULL);
 }
