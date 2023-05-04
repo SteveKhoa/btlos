@@ -1,5 +1,7 @@
 .DS_Store
 _.c
+/obj
+./os
 .idea/
 test/*.d
 src/*.d
