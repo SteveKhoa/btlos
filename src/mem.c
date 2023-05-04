@@ -1,14 +1,10 @@
-// This file does not relate anything to our project.
-// Please ignore this file
-
-#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
+#ifdef ALLOW_DEPRECATED // NK-defined macro to hide this code
 /**
  * @file mem.h
  * @category Implementation source code
- * @brief Implementation of pure RAM and its operation. Distinguish with
- * mm-memphy which is a manager, not pure physical memory.
+ * @brief Implementation of mem.h funcs.
  * 
- * @note THIS FILE IS DEPRECATED.
+ * @attention It seems to be designed with multiple-segmentation page translation.
 */
 #include "mem.h"
 #include "stdlib.h"
@@ -220,4 +216,5 @@ dump (void)
                 }
         }
 }
+
 #endif
