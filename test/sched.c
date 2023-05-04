@@ -8,15 +8,9 @@
  */
 
 #include "../include/sched.h"
-#include "../src/sched.c"
 #include "../ext/munit.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-/* No documentation about this test at the moment
-    Please message NK if you found some tests are wrong or don't understand
-    the tests themselves.
-*/
 
 MunitResult
 init_finish (const MunitParameter params[], void *user_data_or_fixture)
@@ -54,6 +48,8 @@ putproc_simple (const MunitParameter params[], void *user_data_or_fixture)
     put_proc (proc1);
     put_proc (proc2);
     put_proc (proc3);
+
+    printf("fd");
 
     if (queue_empty () != -1)
         {
@@ -189,13 +185,13 @@ MunitResult
 getproc_complex (const MunitParameter params[], void *user_data_or_fixture)
 {
     init_scheduler ();
-    struct pcb_t *proc1 = create_pcb (0, 0, NULL, 0, NULL, 0);
-    struct pcb_t *proc2 = create_pcb (1, 0, NULL, 0, NULL, 0);
-    struct pcb_t *proc3 = create_pcb (2, 0, NULL, 0, NULL, 0);
-    struct pcb_t *proc4 = create_pcb (3, 0, NULL, 0, NULL, 0);
-    struct pcb_t *proc5 = create_pcb (4, 0, NULL, 0, NULL, 0);
-    struct pcb_t *proc6 = create_pcb (5, 0, NULL, 0, NULL, 0);
-    struct pcb_t *proc7 = create_pcb (6, 0, NULL, 0, NULL, 0);
+    struct pcb_t *proc1 = create_pcb (0, 1, NULL, 0, NULL, 0);
+    struct pcb_t *proc2 = create_pcb (1, 2, NULL, 0, NULL, 0);
+    struct pcb_t *proc3 = create_pcb (2, 3, NULL, 0, NULL, 0);
+    struct pcb_t *proc4 = create_pcb (3, 1, NULL, 0, NULL, 0);
+    struct pcb_t *proc5 = create_pcb (4, 1, NULL, 0, NULL, 0);
+    struct pcb_t *proc6 = create_pcb (5, 3, NULL, 0, NULL, 0);
+    struct pcb_t *proc7 = create_pcb (6, 4, NULL, 0, NULL, 0);
 
     put_proc (proc1);
     put_proc (proc2);
@@ -215,10 +211,10 @@ getproc_complex (const MunitParameter params[], void *user_data_or_fixture)
     */
     /*
          Because of the above order, we expect the output will be:
-         0, 3, 4, 1, 5, 2, 6
+         0, 3, 4, 1, 2, 5, 6
     */
 
-    int order[] = { 0, 3, 4, 1, 5, 2, 6 };
+    int order[] = { 0, 3, 4, 1, 2, 5, 6 };
 
     for (int i = 0; i < 7; ++i)
         {
@@ -253,7 +249,7 @@ getproc_complex (const MunitParameter params[], void *user_data_or_fixture)
 
 MunitTest tests[]
     = { {
-            "Testcase 1: ",         /* name of the test */
+            "MLQ's empty() of Init & Finish: ",         /* name of the test */
             init_finish,            /* test func */
             NULL,                   /* setup func (test constructor) */
             NULL,                   /* tear_down func (test destructor) */
@@ -261,7 +257,7 @@ MunitTest tests[]
             NULL                    /* parameters to the test func */
         },
         {
-            "Testcase 2: ",         /* name of the test */
+            "MLQ's empty() after 3 consecutive put_proc() ",         /* name of the test */
             putproc_simple,         /* test func */
             NULL,                   /* setup func (test constructor) */
             NULL,                   /* tear_down func (test destructor) */
@@ -269,7 +265,7 @@ MunitTest tests[]
             NULL                    /* parameters to the test func */
         },
         {
-            "Testcase 3: ",         /* name of the test */
+            "MLQ's empty() put_proc() with prio=-1 ",         /* name of the test */
             putproc_trick_1,        /* test func */
             NULL,                   /* setup func (test constructor) */
             NULL,                   /* tear_down func (test destructor) */
@@ -277,7 +273,7 @@ MunitTest tests[]
             NULL                    /* parameters to the test func */
         },
         {
-            "Testcase 4: ",         /* name of the test */
+            "MLQ's empty() put_proc() with prio=MAX_PRIO (outside) ",         /* name of the test */
             putproc_trick_2,        /* test func */
             NULL,                   /* setup func (test constructor) */
             NULL,                   /* tear_down func (test destructor) */
@@ -285,7 +281,7 @@ MunitTest tests[]
             NULL                    /* parameters to the test func */
         },
         {
-            "Testcase 5: ",         /* name of the test */
+            "MLQ's empty() put_proc() 3 processes with same prio ",         /* name of the test */
             putproc_same_priority,        /* test func */
             NULL,                   /* setup func (test constructor) */
             NULL,                   /* tear_down func (test destructor) */
@@ -293,7 +289,7 @@ MunitTest tests[]
             NULL                    /* parameters to the test func */
         },
         {
-            "Testcase 6: ",         /* name of the test */
+            "get_proc() 3 processes, diff. prio ",         /* name of the test */
             getproc_simple,        /* test func */
             NULL,                   /* setup func (test constructor) */
             NULL,                   /* tear_down func (test destructor) */
@@ -301,7 +297,7 @@ MunitTest tests[]
             NULL                    /* parameters to the test func */
         },
         {
-            "Testcase 7: ",         /* name of the test */
+            "get_proc() processes, complex order ",         /* name of the test */
             getproc_complex,        /* test func */
             NULL,                   /* setup func (test constructor) */
             NULL,                   /* tear_down func (test destructor) */

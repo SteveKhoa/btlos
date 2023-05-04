@@ -1,11 +1,11 @@
 /**
  * @file cpu.c
  * @category Implementation source code
- * @brief 
+ * @brief
  *      Definitions of four operations: calc, alloc, free_data, read and
  *      a wrapper run() which executes an instruction and returns status
  *      code (0 or 1).
- * 
+ *
  */
 #include "cpu.h"
 #include "mem.h"
@@ -22,6 +22,8 @@ calc (struct pcb_t *proc)
 {
     return ((unsigned long)proc & 0UL);
 }
+
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 
 /**
  *      Claim `size` bytes in memory, and store the address to register
@@ -103,19 +105,19 @@ write (struct pcb_t *proc,   // Process executing the instruction
     // [destination] + [offset]
     return write_mem (proc->regs[destination] + offset, proc, data);
 }
+#endif // ALLOW_DEPRECATED
 
+/**
+ *      Execute AN instruction in the process and increase the program counter
+ *      by one. This func does NOT execute all instructions at once.
+ *
+ * @return
+ *      0 if successful,
+ *      1 if unsuccessful or no more instructions
+ */
 int
 run (struct pcb_t *proc)
 {
-    /**
-     *      Execute AN instruction in the process and increase the program counter
-     *      by one.
-     *      This func does NOT execute all instructions at once.
-     *
-     * @return
-     *      0 if successful,
-     *      1 if unsuccessful or no more instructions
-     */
     /* Check if the Program Counter points to the proper instruction */
     if (proc->pc >= proc->code->size)
         {
@@ -123,7 +125,7 @@ run (struct pcb_t *proc)
         }
 
     struct inst_t ins = proc->code->text[proc->pc];
-    proc->pc++;
+    proc->pc++; // Increase the program counter
     int stat = 1;
     switch (ins.opcode)
         {

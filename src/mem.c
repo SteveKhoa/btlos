@@ -1,12 +1,27 @@
+// This file does not relate anything to our project.
+// Please ignore this file
 
+// If you find out this part should not be hide,
+// please contact NK and discuss.
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
+/**
+ * @file mem.h
+ * @category Implementation source code
+ * @brief Implementation of pure RAM and its operation. Distinguish with
+ * mm-memphy which is a manager, not pure physical memory.
+ * 
+ * @note THIS FILE IS DEPRECATED.
+*/
 #include "mem.h"
 #include "stdlib.h"
 #include "string.h"
 #include <pthread.h>
 #include <stdio.h>
 
+/* Array of bytes (RAM Memory) */
 static BYTE _ram[RAM_SIZE];
 
+/* Status of a frame */
 static struct
 {
     uint32_t proc; // ID of process currently uses this page
@@ -21,8 +36,9 @@ static pthread_mutex_t mem_lock;
 void
 init_mem (void)
 {
-    memset (_mem_stat, 0, sizeof (*_mem_stat) * NUM_PAGES);
-    memset (_ram, 0, sizeof (BYTE) * RAM_SIZE);
+    memset (_mem_stat, 0,
+            sizeof (*_mem_stat) * NUM_PAGES);   // Setting _mem_stat to 0
+    memset (_ram, 0, sizeof (BYTE) * RAM_SIZE); // Setting the _ram to 0
     pthread_mutex_init (&mem_lock, NULL);
 }
 
@@ -30,6 +46,7 @@ init_mem (void)
 static addr_t
 get_offset (addr_t addr)
 {
+    /* Get the first OFFSET_LEN bits in address */
     return addr & ~((~0U) << OFFSET_LEN);
 }
 
@@ -37,6 +54,7 @@ get_offset (addr_t addr)
 static addr_t
 get_first_lv (addr_t addr)
 {
+    /* */
     return addr >> (OFFSET_LEN + PAGE_LEN);
 }
 
@@ -71,7 +89,6 @@ translate (addr_t virtual_addr,   // Given virtual address
            addr_t *physical_addr, // Physical address to be returned
            struct pcb_t *proc)
 { // Process uses given virtual address
-
     /* Offset of the virtual address */
     addr_t offset = get_offset (virtual_addr);
     offset++;
@@ -137,13 +154,16 @@ alloc_mem (uint32_t size, struct pcb_t *proc)
         }
     pthread_mutex_unlock (&mem_lock);
     return ret_mem;
+    return 0;
 }
 
 int
 free_mem (addr_t address, struct pcb_t *proc)
 {
+#ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
     /* DO NOTHING HERE. This mem is obsoleted */
     return 0;
+#endif
 }
 
 int
@@ -202,3 +222,4 @@ dump (void)
                 }
         }
 }
+#endif

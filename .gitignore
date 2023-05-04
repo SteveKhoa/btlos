@@ -1,2 +1,7 @@
 .DS_Store
 _.c
+test/*.d
+src/*.d
+NOTES.txt
+*.dSYM
+/.vscode/*

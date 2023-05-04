@@ -1,9 +1,15 @@
+/**
+ * @file mm.h
+ * @category Interface for memory management
+ * @brief Declarations and Macro definitions of all routines related to memory
+ * mapping.
+*/
 #ifndef MM_H
 
 #include "bitops.h"
 #include "common.h"
 
-/* CPU Bus definition */
+/* CPU Bus definition  - Table 1 */
 #define PAGING_CPU_BUS_WIDTH 22  /* 22bit bus - MAX SPACE 4MB */
 #define PAGING_PAGESZ 256        /* 256B or 8-bits PAGE NUMBER */
 #define PAGING_MEMRAMSZ BIT (10) /* 1MB */
@@ -15,7 +21,8 @@
 #define PAGING_MAX_PGN (DIV_ROUND_UP (PAGING_CPU_BUS_WIDTH, PAGING_PAGESZ))
 
 #define PAGING_SBRK_INIT_SZ PAGING_PAGESZ
-/* PTE BIT */
+
+/* PTE (Page table entry) BIT - Figure 5 */
 #define PAGING_PTE_PRESENT_MASK BIT (31)
 #define PAGING_PTE_SWAPPED_MASK BIT (30)
 #define PAGING_PTE_RESERVE_MASK BIT (29)
@@ -30,12 +37,15 @@
 /* USRNUM */
 #define PAGING_PTE_USRNUM_LOBIT 15
 #define PAGING_PTE_USRNUM_HIBIT 27
+
 /* FPN */
 #define PAGING_PTE_FPN_LOBIT 0
 #define PAGING_PTE_FPN_HIBIT 12
+
 /* SWPTYP */
 #define PAGING_PTE_SWPTYP_LOBIT 0
 #define PAGING_PTE_SWPTYP_HIBIT 4
+
 /* SWPOFF */
 #define PAGING_PTE_SWPOFF_LOBIT 5
 #define PAGING_PTE_SWPOFF_HIBIT 25
@@ -139,6 +149,7 @@ int pgwrite (struct pcb_t *proc,   // Process executing the instruction
              BYTE data,            // Data to be wrttien into memory
              uint32_t destination, // Index of destination register
              uint32_t offset);
+             
 /* Local VM prototypes */
 struct vm_rg_struct *get_symrg_byid (struct mm_struct *mm, int rgid);
 int validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
@@ -156,6 +167,7 @@ int MEMPHY_read (struct memphy_struct *mp, int addr, BYTE *value);
 int MEMPHY_write (struct memphy_struct *mp, int addr, BYTE data);
 int MEMPHY_dump (struct memphy_struct *mp);
 int init_memphy (struct memphy_struct *mp, int max_size, int randomflg);
+
 /* DEBUG */
 int print_list_fp (struct framephy_struct *fp);
 int print_list_rg (struct vm_rg_struct *rg);

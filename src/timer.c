@@ -1,4 +1,9 @@
-
+/**
+ * @file timer.c
+ * @category Implementation source code
+ * @brief 
+ *      Belongs to the entire OS.
+ */
 #include "timer.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +28,7 @@ timer_routine (void *args)
 {
     while (!timer_stop)
         {
-            printf ("Time slot %3lu\n", current_time ());
+            printf (":: Time slot %3llu\n", current_time ());
             int fsh = 0;
             int event = 0;
             /* Wait for all devices have done the job in current

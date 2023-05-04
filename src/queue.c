@@ -1,10 +1,8 @@
 /**
  * @file queue.c
  * @category Implementation source code
- * @brief 
+ * @brief
  *      Implementation from `queue.h` interface
- * 
- * 
  */
 #include "queue.h"
 #include <stdio.h>
@@ -22,28 +20,27 @@ void
 enqueue (struct queue_t *q, struct pcb_t *proc)
 {
     /* TODO: put a new process to queue [q] */
-    if(q->size < MAX_QUEUE_SIZE - 1)
-    {
-        q->proc[q->size] = proc;
-        q->size++;
-    }
-    
+    if (q->size < MAX_QUEUE_SIZE - 1)
+        {
+            q->proc[q->size] = proc; // Put a proc at the front of the queue
+            q->size++;               // Increase the cnt
+        }
 }
 
 int
-queuePeek(struct queue_t *q)
+queuePeek (struct queue_t *q)
 {
     int maxPrio = MAX_INT;
     int index = -1;
 
-    for(int i = 0; i < q->size; i++) 
-    {
-        if(maxPrio > q->proc[i]->priority)
+    for (int i = 0; i < q->size; i++)
         {
-            maxPrio =  q->proc[i]->priority;
-            index = i;
+            if (maxPrio > q->proc[i]->priority)
+                {
+                    maxPrio = q->proc[i]->priority;
+                    index = i;
+                }
         }
-    }
 
     return index;
 }
@@ -54,48 +51,54 @@ dequeue (struct queue_t *q)
     /* TODO: return a pcb whose priority is the highest
      * in the queue [q] and remember to remove it from q
      * */
-#ifdef MLQ_SCHED /* Skip the priority and dequeue the first proc if using MLQ */
+#ifdef MLQ_SCHED // Skip the priority and dequeue the first proc if using MLQ
 
-    if(!empty(q))
-    {
-        struct pcb_t *newProc = malloc(sizeof(struct pcb_t));
-        newProc = q->proc[0];
-        for(int i = 0; i < q->size; i++)
+    if (!empty (q))
         {
-            q->proc[i] = q->proc[i+1];
+            struct pcb_t *newProc = malloc (sizeof (struct pcb_t));
+            newProc = q->proc[0];
+            for (int i = 0; i < q->size; i++)
+                {
+                    q->proc[i] = q->proc[i + 1];
+                }
+            q->size--;
+            return newProc;
         }
-        q->size--;
-        return newProc;
-    }
 
 #else
-    if(!empty(q))
-    {
-        int index = queuePeek(q);
-        struct pcb_t *newProc = malloc(sizeof(struct pcb_t));
-        newProc = q->proc[index];
-        for(int i = index; i < q->size; i++)
+    if (!empty (q))
         {
-            q->proc[i] = q->proc[i+1];
+            int index = queuePeek (q);
+            struct pcb_t *newProc = malloc (sizeof (struct pcb_t));
+            newProc = q->proc[index];
+            for (int i = index; i < q->size; i++)
+                {
+                    q->proc[i] = q->proc[i + 1];
+                }
+            q->size--;
+            return newProc;
         }
-        q->size--;
-        return newProc;
-    }
 #endif
     return NULL;
 }
 
-struct queue_t * init_queue()
+/* Heap-allocate the queue, and initialize its attributes*/
+struct queue_t *
+init_queue ()
 {
-    /* data */
-    struct queue_t *ready_queue = malloc(sizeof(struct queue_t));
-    ready_queue->size = 0;
-    return ready_queue;
-    
+    /* The name should be changed to `ptr` to avoid confusion
+        of using the global variable */
+    struct queue_t *ptr = malloc (sizeof (struct queue_t));
+    ptr->size = 0;
+    return ptr;
 };
 
-void destroy_queue(struct queue_t *q)
+/* Reclaim the heap-allocation of the queue */
+void
+destroy_queue (struct queue_t *q)
 {
-    free(q->proc);
-    q->size = 0;
+    q->size = -1; // To signify that this queue is invalid
+                  // Later access to this 'garbage value' can be debugged
+                  // easier
+    free (q);
 }

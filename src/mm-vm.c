@@ -1,10 +1,9 @@
 /**
  * @file mm-memphy.c
  * @category Implementation source code
- * @brief 
+ * @brief
  *      Implementation of virtual memory operations.
  */
-
 
 // #ifdef MM_PAGING
 /*
@@ -17,10 +16,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*enlist_vm_freerg_list - add new rg to freerg_list
- *@mm: memory region
- *@rg_elmt: new region
- *
+/**
+ * @brief Add new region to freerg_list
+ * @param mm The list of areas to add rg to
+ * @param rg_elmt The rg to be added
  */
 int
 enlist_vm_freerg_list (struct mm_struct *mm, struct vm_rg_struct rg_elmt)
@@ -28,7 +27,7 @@ enlist_vm_freerg_list (struct mm_struct *mm, struct vm_rg_struct rg_elmt)
     struct vm_rg_struct *rg_node = mm->mmap->vm_freerg_list;
 
     if (rg_elmt.rg_start >= rg_elmt.rg_end)
-        return -1;
+        return -1; // return -1 when the region is invalid
 
     if (rg_node != NULL)
         rg_elmt.rg_next = rg_node;
@@ -43,6 +42,11 @@ enlist_vm_freerg_list (struct mm_struct *mm, struct vm_rg_struct rg_elmt)
  *@mm: memory region
  *@vmaid: ID vm area to alloc memory region
  *
+ */
+/**
+ * @brief Get memory area by `vmaid`.
+ * @param mm The list of areas to get memory area from
+ * @param vmaid The id of memory area
  */
 struct vm_area_struct *
 get_vma_by_num (struct mm_struct *mm, int vmaid)
@@ -70,6 +74,11 @@ get_vma_by_num (struct mm_struct *mm, int vmaid)
  *@rgid: region ID act as symbol index of variable
  *
  */
+/**
+ * @brief Get memory region through Symbol table
+ * @param mm The list of areas to get the rg from
+ * @param rgid The name of symbol
+ */
 struct vm_rg_struct *
 get_symrg_byid (struct mm_struct *mm, int rgid)
 {
@@ -79,13 +88,13 @@ get_symrg_byid (struct mm_struct *mm, int rgid)
     return &mm->symrgtbl[rgid];
 }
 
-/*__alloc - allocate a region memory
- *@caller: caller
- *@vmaid: ID vm area to alloc memory region
- *@rgid: memory region ID (used to identify variable in symbole table)
- *@size: allocated size
- *@alloc_addr: address of allocated memory region
- *
+/**
+ * @brief Allocate a new symbol on Virtual Memory.
+ * @param caller The process requesting the allocation.
+ * @param vmaid The id of memory area to be allocated.
+ * @param rgid The name of symbol (currently just index)
+ * @param size The size of allocation
+ * @param alloc_addr rg_start of the allocation
  */
 int
 __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
@@ -103,9 +112,8 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
             return 0;
         }
 
-    /* TODO get_free_vmrg_area FAILED handle the region management (Fig.6)*/
-
-    /*Attempt to increate limit to get space */
+    /* When get_free_vmrg_area FAILED handle the region management,
+    we attempt to increate limit to get space */
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
     int inc_sz = PAGING_PAGE_ALIGNSZ (size);
     // int inc_limit_ret
@@ -113,9 +121,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
 
     old_sbrk = cur_vma->sbrk;
 
-    /* TODO INCREASE THE LIMIT
-     * inc_vma_limit(caller, vmaid, inc_sz)
-     */
+    /* INCREASE THE LIMIT */
     inc_vma_limit (caller, vmaid, inc_sz);
 
     /*Successful increase limit */
@@ -127,12 +133,11 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     return 0;
 }
 
-/*__free - remove a region memory
- *@caller: caller
- *@vmaid: ID vm area to alloc memory region
- *@rgid: memory region ID (used to identify variable in symbole table)
- *@size: allocated size
- *
+/**
+ * @brief Remove a symbol from Virtual memory
+ * @param caller The process requesting the removal.
+ * @param vmaid The id of memory area
+ * @param rgid The name of symbol (currently just numbers allowed)
  */
 int
 __free (struct pcb_t *caller, int vmaid, int rgid)
@@ -143,6 +148,14 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
         return -1;
 
     /* TODO: Manage the collect freed region to freerg_list */
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
 
     /*enlist the obsoleted memory region */
     enlist_vm_freerg_list (caller->mm, rgnode);
@@ -154,6 +167,12 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
  *@proc:  Process executing the instruction
  *@size: allocated size
  *@reg_index: memory region ID (used to identify variable in symbole table)
+ */
+/**
+ * @brief
+ * @param caller The process requesting the page alloc
+ * @param size
+ * @param reg_index
  */
 int
 pgalloc (struct pcb_t *proc, uint32_t size, uint32_t reg_index)

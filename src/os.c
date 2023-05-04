@@ -1,7 +1,7 @@
 /**
  * @file os.c
  * @category Executable file
- * @brief 
+ * @brief
  *      The entry point of our entire OS.
  */
 #include "cpu.h"
@@ -49,17 +49,30 @@ struct cpu_args
     int id;
 };
 
+/**
+ * @brief A separate thread as an independent running instance, for a CORE.
+ */
 static void *
 cpu_routine (void *args)
 {
     struct timer_id_t *timer_id = ((struct cpu_args *)args)->timer_id;
     int id = ((struct cpu_args *)args)->id;
+    printf ("CPU %d turned on!\n", id);
     /* Check for new process in ready queue */
     int time_left = 0;
     struct pcb_t *proc = NULL;
     while (1)
         {
-            /* Check the status of current process */
+            /**
+             * Check the status of the current process.
+             * The following scenarios can occur:
+             *  - No process -> continue finding new process.
+             *  - Process finished -> load new process, set time_left = 0
+             *  - Process overdue its time_slot -> put it back to the queue
+             *                                      and get new process
+             *
+             *  Overall result: will have some process loaded.
+             */
             if (proc == NULL)
                 {
                     /* No process is running, the we load new process from
@@ -67,14 +80,15 @@ cpu_routine (void *args)
                     proc = get_proc ();
                     if (proc == NULL)
                         {
+                            printf ("\t... CPU %d idle...\n", id);
                             next_slot (timer_id);
                             continue; /* First load failed. skip dummy load */
                         }
                 }
             else if (proc->pc == proc->code->size)
                 {
-                    /* The porcess has finish it job */
-                    printf ("\tCPU %d: Process %2d has finished\n", id,
+                    /* The process has finish it job */
+                    printf ("\tFrom CPU %d, Process %2d finished!\n", id,
                             proc->pid);
                     free (proc);
                     proc = get_proc ();
@@ -83,30 +97,37 @@ cpu_routine (void *args)
             else if (time_left == 0)
                 {
                     /* The process has done its job in current time slot */
-                    printf ("\tCPU %d: Put process %2d to run queue\n", id,
-                            proc->pid);
+                    printf("\tQueue <-- process %2d (from CPU %d)\n", proc->pid, id);
                     put_proc (proc);
                     proc = get_proc ();
                 }
 
             /* Recheck process status after loading new process */
+            /**
+             * After loaded a new process (or reusing the process) from above.
+             * We check for the process status for the second time.
+             *
+             *  - If the loader is done, and no process currently waiting, then
+             *
+             */
             if (proc == NULL && done)
                 {
                     /* No process to run, exit */
-                    printf ("\tCPU %d stopped\n", id);
+                    printf ("CPU %d turned off.\n", id);
                     break;
                 }
             else if (proc == NULL)
                 {
                     /* There may be new processes to run in
                      * next time slots, just skip current slot */
+                    printf ("\tCPU %d is hungry...\n", id);
                     next_slot (timer_id);
                     continue;
                 }
-            else if (time_left == 0)
+            else if (time_left == 0) // the process has just been reloaded
+                                     // from the queue
                 {
-                    printf ("\tCPU %d: Dispatched process %2d\n", id,
-                            proc->pid);
+                    printf("\tCPU %d <-- Process %2d\n", id, proc->pid);
                     time_left = time_slot;
                 }
 
@@ -119,6 +140,9 @@ cpu_routine (void *args)
     pthread_exit (NULL);
 }
 
+/**
+ * @brief Loader as an independent running instance, for a LOADER
+ */
 static void *
 ld_routine (void *args)
 {
@@ -132,7 +156,7 @@ ld_routine (void *args)
     struct timer_id_t *timer_id = (struct timer_id_t *)args;
 #endif
     int i = 0;
-    printf ("ld_routine\n");
+    printf ("Loader turn on!\n");
     while (i < num_processes)
         {
             struct pcb_t *proc = load (ld_processes.path[i]);
@@ -150,8 +174,8 @@ ld_routine (void *args)
             proc->mswp = mswp;
             proc->active_mswp = active_mswp;
 #endif
-            printf ("\tLoaded a process at %s, PID: %d PRIO: %ld\n",
-                    ld_processes.path[i], proc->pid, ld_processes.prio[i]);
+            printf ("\tQueue <-- Process %u, PRIO=%lu, SRC=%s\n", proc->pid,
+                    ld_processes.prio[i], ld_processes.path[i]);
             add_proc (proc);
             free (ld_processes.path[i]);
             i++;
@@ -160,10 +184,12 @@ ld_routine (void *args)
     free (ld_processes.path);
     free (ld_processes.start_time);
     done = 1;
+    printf ("Loader turn off.\n");
     detach_event (timer_id);
     pthread_exit (NULL);
 }
 
+/* Subroutine reading the configuration and */
 static void
 read_config (const char *path)
 {
@@ -234,7 +260,8 @@ main (int argc, char *argv[])
         }
     char path[100];
     path[0] = '\0';
-    strcat (path, "input/");
+    // strcat (path, "input/"); // Don't concatenate, we want to explicitly
+    // set the path
     strcat (path, argv[1]);
     read_config (path);
 
