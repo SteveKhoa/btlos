@@ -88,7 +88,7 @@ cpu_routine (void *args)
             else if (proc->pc == proc->code->size)
                 {
                     /* The process has finish it job */
-                    printf ("\tFrom CPU %d, Process %2d finished!\n", id,
+                    printf ("\tCPU %d: Process %2d has finished\n", id,
                             proc->pid);
                     free (proc);
                     proc = get_proc ();
@@ -97,7 +97,8 @@ cpu_routine (void *args)
             else if (time_left == 0)
                 {
                     /* The process has done its job in current time slot */
-                    printf("\tQueue <-- process %2d (from CPU %d)\n", proc->pid, id);
+                    printf ("\tCPU %d: Put process %2d to run queue\n", id,
+                            proc->pid);
                     put_proc (proc);
                     proc = get_proc ();
                 }
@@ -113,21 +114,22 @@ cpu_routine (void *args)
             if (proc == NULL && done)
                 {
                     /* No process to run, exit */
-                    printf ("CPU %d turned off.\n", id);
+                    printf ("\tCPU %d stopped\n", id);
                     break;
                 }
             else if (proc == NULL)
                 {
                     /* There may be new processes to run in
                      * next time slots, just skip current slot */
-                    printf ("\tCPU %d is hungry...\n", id);
+                    printf ("\t...CPU %d is hungry...\n", id);
                     next_slot (timer_id);
                     continue;
                 }
             else if (time_left == 0) // the process has just been reloaded
                                      // from the queue
                 {
-                    printf("\tCPU %d <-- Process %2d\n", id, proc->pid);
+                    printf ("\tCPU %d: Dispatched process %2d\n", id,
+                            proc->pid);
                     time_left = time_slot;
                 }
 
@@ -156,7 +158,7 @@ ld_routine (void *args)
     struct timer_id_t *timer_id = (struct timer_id_t *)args;
 #endif
     int i = 0;
-    printf ("Loader turn on!\n");
+    printf ("ld_routine: Loader turn on!\n");
     while (i < num_processes)
         {
             struct pcb_t *proc = load (ld_processes.path[i]);
@@ -174,8 +176,8 @@ ld_routine (void *args)
             proc->mswp = mswp;
             proc->active_mswp = active_mswp;
 #endif
-            printf ("\tQueue <-- Process %u, PRIO=%lu, SRC=%s\n", proc->pid,
-                    ld_processes.prio[i], ld_processes.path[i]);
+            printf ("\tLoaded a process at %s, PID: %d PRIO: %ld\n",
+                    ld_processes.path[i], proc->pid, ld_processes.prio[i]);
             add_proc (proc);
             free (ld_processes.path[i]);
             i++;
@@ -184,7 +186,7 @@ ld_routine (void *args)
     free (ld_processes.path);
     free (ld_processes.start_time);
     done = 1;
-    printf ("Loader turn off.\n");
+    printf ("ld_routine: Loader turn off.\n");
     detach_event (timer_id);
     pthread_exit (NULL);
 }
