@@ -38,11 +38,6 @@ enlist_vm_freerg_list (struct mm_struct *mm, struct vm_rg_struct rg_elmt)
     return 0;
 }
 
-/*get_vma_by_num - get vm area by numID
- *@mm: memory region
- *@vmaid: ID vm area to alloc memory region
- *
- */
 /**
  * @brief Get memory area by `vmaid`.
  * @param mm The list of areas to get memory area from
@@ -69,11 +64,6 @@ get_vma_by_num (struct mm_struct *mm, int vmaid)
     return pvma;
 }
 
-/*get_symrg_byid - get mem region by region ID
- *@mm: memory region
- *@rgid: region ID act as symbol index of variable
- *
- */
 /**
  * @brief Get memory region through Symbol table
  * @param mm The list of areas to get the rg from

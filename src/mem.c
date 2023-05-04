@@ -1,8 +1,6 @@
 // This file does not relate anything to our project.
 // Please ignore this file
 
-// If you find out this part should not be hide,
-// please contact NK and discuss.
 #ifdef ALLOW_DEPRECATED // NK-defined macro, to hide this piece of code
 /**
  * @file mem.h
