@@ -260,8 +260,9 @@ main (int argc, char *argv[])
         }
     char path[100];
     path[0] = '\0';
-     strcat (path, "input/"); // Don't concatenate, we want to explicitly
+    // strcat (path, "input/"); // Don't concatenate, we want to explicitly
     // set the path
+    strcat (path, argv[1]);
     read_config (path);
 
     pthread_t *cpu = (pthread_t *)malloc (num_cpus * sizeof (pthread_t));
