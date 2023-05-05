@@ -14,6 +14,7 @@ create_pcb (uint32_t pid, uint32_t priority, struct code_seg_t *code,
     retpcb->page_table = (struct page_table_t *)malloc (sizeof (struct page_table_t));
     retpcb->bp = bp;
     retpcb->pc = 0;
+    retpcb->prio = -1;
 
     return retpcb;
 }
