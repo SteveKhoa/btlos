@@ -232,7 +232,10 @@ MEMPHY_dump (struct memphy_struct *mp)
     /*TODO dump memphy contnt mp->storage
      *     for tracing the memory content
      */
-
+    for(int index = 0; index < mp->maxsz; index++) 
+    {
+        if(mp->storage[index] != '/0') printf("Add: %d:   Val: %c\n",index, mp->storage[index]);
+    }
     return 0;
 }
 
