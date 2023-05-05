@@ -241,7 +241,7 @@ MEMPHY_dump (struct memphy_struct *mp)
     for (int phyaddr = 0; phyaddr < mp->maxsz; phyaddr++)
         {
             int fpn = -1;
-            if (mp->storage[phyaddr] != '/0') // if that position is clean
+            if (mp->storage[phyaddr] != '\0') // if that position is clean
                 printf ("%7d  %010d:%7c\n", fpn, phyaddr,
                         mp->storage[phyaddr]);
         }
