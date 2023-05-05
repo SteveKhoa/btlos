@@ -13,8 +13,8 @@
  */
 
 #include "mm.h"
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /**
  * @brief Increase the [cursor] of [mp] to [offset].
@@ -226,16 +226,26 @@ MEMPHY_put_freefp (struct memphy_struct *mp, int fpn)
     return 0;
 }
 
+/**
+ * @brief Dump out the contents of Physical Memory device [mp]. Only the used
+ * positions are displayed, unused positions are hidden.
+ */
 int
 MEMPHY_dump (struct memphy_struct *mp)
 {
     /*TODO dump memphy contnt mp->storage
      *     for tracing the memory content
      */
-    for(int index = 0; index < mp->maxsz; index++) 
-    {
-        if(mp->storage[index] != '/0') printf("Add: %d:   Val: %c\n",index, mp->storage[index]);
-    }
+    printf ("=== Physical Memory Dump ===\n");
+    printf ("%7s  %10s:%7s\n", "fpn", "phyaddr", "value");
+    for (int phyaddr = 0; phyaddr < mp->maxsz; phyaddr++)
+        {
+            int fpn = -1;
+            if (mp->storage[phyaddr] != '/0') // if that position is clean
+                printf ("%7d  %010d:%7c\n", fpn, phyaddr,
+                        mp->storage[phyaddr]);
+        }
+    printf ("============================\n");
     return 0;
 }
 
