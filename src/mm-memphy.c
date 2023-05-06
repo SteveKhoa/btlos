@@ -240,7 +240,10 @@ MEMPHY_dump (struct memphy_struct *mp)
     printf ("%7s  %10s:%7s\n", "fpn", "phyaddr", "value");
     for (int phyaddr = 0; phyaddr < mp->maxsz; phyaddr++)
         {
-            int fpn = -1;
+           // int fpn = -1;
+           // Map fpn from phyaddr 
+           // int phyaddr = (fpn << PAGING_ADDR_FPN_LOBIT) + off;
+            int fpn = phyaddr >> PAGING_ADDR_FPN_LOBIT;
             if (mp->storage[phyaddr] != '/0') // if that position is clean
                 printf ("%7d  %010d:%7c\n", fpn, phyaddr,
                         mp->storage[phyaddr]);
