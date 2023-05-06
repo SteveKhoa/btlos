@@ -127,5 +127,4 @@ clean-test:
 
 _ : _.c $(deps)
 	@$(MAKE) $(LFLAGS) $^ -o _
-	@./_
 	@rm -rf _.d
