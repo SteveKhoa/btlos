@@ -254,8 +254,8 @@ MEMPHY_dump (struct memphy_struct *mp)
 }
 
 /**
- * @brief Initialize Physical Memory Structure (Device). Can be used to
- * simulate RAM or SWP device.
+ * @brief Initialize Physical Memory Structure (Device) and format the device
+ * to a new-clean device. Can be used to simulate RAM or SWP device.
  * @param mp NULL ptr
  * @param max_size maximum size of the phymem structure (bytes)
  * @param randomflg 1 if randomly accessed, 0 if sequentially
