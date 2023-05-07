@@ -135,7 +135,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
 int
 __free (struct pcb_t *caller, int vmaid, int rgid)
 {
-    struct vm_rg_struct rgnode;
+    // struct vm_rg_struct rgnode;
 
     if (rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
         return -1;
@@ -150,8 +150,17 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
     //
     //
 
+    struct vm_rg_struct *currg = get_symrg_byid (caller->mm, rgid);
+
+    struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
+
+    if (currg == NULL || cur_vma == NULL) /* Invalid memory identify */
+        return -1;
+
+    // int addr = currg->rg_start;
+
     /*enlist the obsoleted memory region */
-    enlist_vm_freerg_list (caller->mm, rgnode);
+    enlist_vm_freerg_list (caller->mm, *currg);
 
     return 0;
 }
