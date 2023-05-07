@@ -189,11 +189,17 @@ pgfree_data (struct pcb_t *proc, uint32_t reg_index)
 int
 pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 {
+    if (pgn < 0 || pgn >= PAGING_MAX_PGN) // check if pgn is invalid
+        {
+            return -1;
+        }
+
     uint32_t pte = mm->pgd[pgn];
 
-    if (!PAGING_PAGE_PRESENT (pte))
+    if (!PAGING_PAGE_PRESENT (pte)) // if PAGE NOT PRESENT
+                                    // pte not initialized
         { /* Page is not online, make it actively living */
-            int vicpgn, swpfpn;
+            // int vicpgn, swpfpn;
             // int vicfpn;
             // uint32_t vicpte;
 
@@ -201,11 +207,80 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                 = PAGING_SWP (pte); // the target frame storing our variable
 
             /* TODO: Play with your paging theory here */
-            /* Find victim page */
-            find_victim_page (caller->mm, &vicpgn);
 
-            /* Get free frame in MEMSWP */
-            MEMPHY_get_freefp (caller->active_mswp, &swpfpn);
+            // ==> My idea
+            //  First, we must find if there are free frames or not.
+            //      If there are free frames --> get the frame, who needs swp?
+            //      If not free frames --> Find victim page --> swap physical
+            //      contents of [vicpte] out to SWP, and use that physical
+            //      contents as the new frame for [pte].
+
+            int freefpn;
+            int get_freefp_status = MEMPHY_get_freefp (caller->mram, &freefpn);
+
+            if (get_freefp_status != -1)
+                {
+                    pte_set_fpn (&pte, freefpn);
+                    printf ("Get free frame from RAM succesfully.\n");
+                }
+            else
+                {
+                    int vicpgn;
+                    if (find_victim_page (caller->mm, &vicpgn) == -1)
+                        {
+                            printf ("Get find victim page failed.\n");
+                            return -1;
+                        }
+
+                    uint32_t vicpte = mm->pgd[vicpgn];
+
+                    // Swap the contents of the current page out
+
+                    int mswp_free_frame; // Find a free frame in active mswp
+                    if (MEMPHY_get_freefp (caller->active_mswp,
+                                           &mswp_free_frame)
+                        == -1)
+                        {
+                            // Can not get a free frame in the current mswp
+                            // Question? Will we skip, or we must implement 4
+                            // mswp mechanism
+
+                            // Currently don't know, so assume only one mswp
+                            // was used
+
+                            // Answered: we only use one MSWP, if its full,
+                            // return error.
+
+                            return -1; // If current mswp full, return error.
+                        }
+                    int srcfpn_out = PAGING_FPN (vicpte);
+                    int dstfpn_out = mswp_free_frame;
+                    __swap_cp_page (caller->mram, srcfpn_out,
+                                    caller->active_mswp, dstfpn_out);
+
+                    // And swap the contents from SWP of the needed page in.
+
+                    int srcfpn_in = PAGING_SWP (pte);
+                    int dstfpn_in = PAGING_FPN (vicpte);
+                    __swap_cp_page (caller->mram, srcfpn_in,
+                                    caller->active_mswp, dstfpn_in);
+
+                    int phyaddr_swp
+                        = (mswp_free_frame << PAGING_ADDR_FPN_LOBIT);
+                    int swptyp = 0; // In this assignment, we assume swptyp = 0
+                    int swpoff = phyaddr_swp; // SWP OFFSET, where the frame
+                                              // actually is on MSWP
+
+                    // PTE off pte and victim pte must be updated
+
+                    pte_set_fpn (&pte, dstfpn_in); // the page now become
+                                                   // "RAM"-oriented (32-bits)
+                    pte_set_swap (&vicpte, swptyp,
+                                  swpoff); // the page now become
+                                           // "SWP"-oriented (only 25bits)
+                    printf ("Swapped sucessfully, frame %d updated.\n",
+                            dstfpn_in);
+                }
 
             /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
             /* Copy victim frame to swap */
@@ -218,7 +293,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
             /* Update its online status of the target page */
             // pte_set_fpn() & mm->pgd[pgn];
-            pte_set_fpn (&pte, tgtfpn);
+            // pte_set_fpn (&pte, tgtfpn);
 
             enlist_pgn_node (&caller->mm->fifo_pgn, pgn);
         }
@@ -504,6 +579,10 @@ find_victim_page (struct mm_struct *mm, int *retpgn)
     /* TODO: Implement the theorical mechanism to find the victim page */
 
     free (pg);
+
+    // Just dummy code written by NK
+    // Remove this if your merge is conflict with this.
+    *retpgn = 0;
 
     return 0;
 }
