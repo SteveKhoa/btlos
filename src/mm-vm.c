@@ -517,7 +517,8 @@ get_vm_area_node_at_brk (struct pcb_t *caller, int vmaid, int size,
 /**
  * @brief Validate the the VM Area does not overlap with any other VM Area
  * region.
- * @note DEPRECATED - our project only has one VM Area.
+ * @note DEPRECATED - our project only has one VM Area. No implementation is
+ * done. Always return 0.
  */
 int
 validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
@@ -526,6 +527,8 @@ validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
     // struct vm_area_struct *vma = caller->mm->mmap;
 
     /* TODO validate the planned memory area is not overlapped */
+
+    // NK: don't implement this.
 
     return 0;
 }
