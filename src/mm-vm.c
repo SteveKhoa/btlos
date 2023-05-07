@@ -392,7 +392,8 @@ pgread (struct pcb_t *proc, // Process executing the instruction
     BYTE data;
     int val = __read (proc, 0, source, offset, &data);
 
-    destination = (uint32_t)data;
+    // destination = (uint32_t)data; // ignore this
+    proc->regs[destination] = data;
 #ifdef IODUMP
     printf ("read region=%d offset=%d value=%d\n", source, offset, data);
 #ifdef PAGETBL_DUMP
@@ -587,29 +588,29 @@ find_victim_page (struct mm_struct *mm, int *retpgn)
 {
     struct pgn_t *pg = mm->lru_pgn;
     /* TODO: Implement the theorical mechanism to find the victim page */
-    //Empty list
-    if(pg == NULL) 
-    {
-        return -1;
-    }
-    //list only have 1 page
-    if(pg->pg_next == NULL) 
-    {
-        retpgn = pg->pgn;
-        free(pg);
-        pg = NULL;
-        return 0;
-    }
+    // Empty list
+    if (pg == NULL)
+        {
+            return -1;
+        }
+    // list only have 1 page
+    if (pg->pg_next == NULL)
+        {
+            retpgn = pg->pgn;
+            free (pg);
+            pg = NULL;
+            return 0;
+        }
     /**
-     * find the second-last entry in the list and assign the value 
+     * find the second-last entry in the list and assign the value
      * of the last node to retpgn
-    */
-    while(pg->pg_next->pg_next != NULL) 
-    {
-        pg = pg->pg_next;
-    }
+     */
+    while (pg->pg_next->pg_next != NULL)
+        {
+            pg = pg->pg_next;
+        }
     retpgn = pg->pg_next->pgn;
-    
+
     free (pg->pg_next);
     pg->pg_next = NULL;
     return 0;
