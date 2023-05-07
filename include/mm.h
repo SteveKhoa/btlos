@@ -115,7 +115,7 @@ int enlist_pgn_node (struct pgn_t **pgnlist, int pgn);
 int vmap_page_range (struct pcb_t *caller, int addr, int pgnum,
                      struct framephy_struct *frames,
                      struct vm_rg_struct *ret_rg);
-int vm_map_ram (struct pcb_t *caller, int astart, int send, int mapstart,
+int vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
                 int incpgnum, struct vm_rg_struct *ret_rg);
 int alloc_pages_range (struct pcb_t *caller, int incpgnum,
                        struct framephy_struct **frm_lst);
