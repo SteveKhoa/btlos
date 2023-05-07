@@ -111,18 +111,25 @@ vmap_page_range (
     struct framephy_struct *fpit = malloc (sizeof (struct framephy_struct));
     // int  fpn;
     int pgit = 0;
-    // get page number from addr
-    int pgn = PAGING_PGN (addr);
 
-    ret_rg->rg_end = ret_rg->rg_start
-        = addr; // at least the very first space is usable
+//    ret_rg->rg_end = ret_rg->rg_start
+//        = addr; // at least the very first space is usable
 
-    fpit->fp_next = frames;
 
     /* TODO map range of frame to address space
      *      [addr to addr + pgnum * PAGING_PAGESZ
      *      in page table caller->mm->pgd[]
      */
+    int pgn;
+    fpit = frames;
+    while(fpit){
+        // get page number from addr
+            pgn = PAGING_PGN (addr);
+            pgit = pgn;
+            pte_set_fpn (caller->mm->pgd[pgn], fpit->fpn);
+            fpit = fpit->fp_next;
+            addr += PAGING_PAGESZ;
+        }
 
     /* Tracking for later page replacement activities (if needed)
      * Enqueue new usage page */
@@ -194,8 +201,10 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
             return -1;
         }
 
-    /* it leaves the case of memory is enough but half in ram, half in swap
-     * do the swaping all to swapper to get the all in ram */
+    /* If there is enough memory available but it is split between RAM and swap,
+     * the code performs swapping operations to bring all the required data into RAM.
+     * This ensures that the entire data set is resident in RAM rather than being partially stored in swap.
+     * */
     vmap_page_range (caller, mapstart, incpgnum, frm_lst, ret_rg);
 
     return 0;
