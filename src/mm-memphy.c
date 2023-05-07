@@ -193,6 +193,14 @@ MEMPHY_format (struct memphy_struct *mp, int pagesz)
     return 0;
 }
 
+/**
+ * @brief Get free frames from free_fp_list. The frame got will be stored in
+ * retfpn. This function fails if the memory is used up (return -1).
+ * @param mp physical memory device
+ * @param retfpn return frame number
+ * @return 0 if there is frame (and stored in retfpn); -1 if failed (retfpn
+ * undefined)
+ */
 int
 MEMPHY_get_freefp (struct memphy_struct *mp, int *retfpn)
 {
@@ -212,6 +220,12 @@ MEMPHY_get_freefp (struct memphy_struct *mp, int *retfpn)
     return 0;
 }
 
+/**
+ * @brief Add frame (id = [fpn]) to free frame list.
+ * @param mp physical memory device
+ * @param fpn the frame id.
+ * @return 0 always successful.
+*/
 int
 MEMPHY_put_freefp (struct memphy_struct *mp, int fpn)
 {

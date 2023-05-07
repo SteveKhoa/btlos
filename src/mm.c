@@ -126,13 +126,12 @@ vmap_page_range (
     return 0;
 }
 
-/*
- * alloc_pages_range - allocate req_pgnum of frame in ram
- * @caller    : caller
- * @req_pgnum : request page num
- * @frm_lst   : frame list
- */
-
+/**
+ * @brief Try to get [req_pgnum] free frames.
+ * @param caller the process requesting
+ * @param req_pgnum requested number of pages (also number of frames requested)
+ * @param frm_lst store the new free frames list
+*/
 int
 alloc_pages_range (struct pcb_t *caller, int req_pgnum,
                    struct framephy_struct **frm_lst)
@@ -162,6 +161,9 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
  * @incpgnum  : number of mapped page
  * @ret_rg    : returned region
  */
+/**
+ * @note DEPRECATED - this func is unstable.
+*/
 int
 vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
             int incpgnum, struct vm_rg_struct *ret_rg)
@@ -197,12 +199,14 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
     return 0;
 }
 
-/* Swap copy content page from source frame to destination frame
- * @mpsrc  : source memphy
- * @srcfpn : source physical page number (FPN)
- * @mpdst  : destination memphy
- * @dstfpn : destination physical page number (FPN)
- **/
+/**
+ * @brief Read from [srcfpn] frame and write to [dstfpn] frame.
+ * @param mpsrc source memphy
+ * @param mpdst destination memphy
+ * @param srcfpn source frame id
+ * @param dstfon destination frame id.
+ * @return 0 always sucessful.
+*/
 int
 __swap_cp_page (struct memphy_struct *mpsrc, int srcfpn,
                 struct memphy_struct *mpdst, int dstfpn)
@@ -268,6 +272,9 @@ init_mm (struct mm_struct *mm, struct pcb_t *caller)
     return 0;
 }
 
+/**
+ * @brief init a vm_rg_struct
+*/
 struct vm_rg_struct *
 init_vm_rg (int rg_start, int rg_end)
 {
@@ -280,6 +287,9 @@ init_vm_rg (int rg_start, int rg_end)
     return rgnode;
 }
 
+/**
+ * @brief add a [rgnode] to [rglist].
+*/
 int
 enlist_vm_rg_node (struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
 {
@@ -289,6 +299,9 @@ enlist_vm_rg_node (struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
     return 0;
 }
 
+/**
+ * @brief add a page number to [plist]
+*/
 int
 enlist_pgn_node (struct pgn_t **plist, int pgn)
 {
