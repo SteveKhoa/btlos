@@ -137,16 +137,6 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
     if (rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
         return -1;
 
-    /* TODO: Manage the collect freed region to freerg_list */
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-
     struct vm_rg_struct *currg = get_symrg_byid (caller->mm, rgid);
 
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
