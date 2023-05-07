@@ -278,6 +278,23 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                     pte_set_swap (&vicpte, swptyp,
                                   swpoff); // the page now become
                                            // "SWP"-oriented (only 25bits)
+
+                    SETBIT (pte,                      // Make pte "present"
+                            PAGING_PTE_PRESENT_MASK); // Duplicate with
+                                                      // pte_set_fpn's macro.
+                                                      // However, this macro is
+                                                      // still put here to
+                                                      // clarify the flow of
+                                                      // pg_getpage algorithm.
+                    CLRBIT (
+                        vicpte,
+                        PAGING_PTE_PRESENT_MASK); // Make vicpte "unpresent"
+                                                  // Note that this CLRBIT must
+                                                  // come AFTER pte_set_swap()
+
+                    mm->pgd[vicpgn] = vicpte; // Update page table
+                    mm->pgd[pgn] = pte;       // Update page table
+
                     printf ("Swapped sucessfully, frame %d updated.\n",
                             dstfpn_in);
                 }
