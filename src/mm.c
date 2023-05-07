@@ -126,14 +126,15 @@ vmap_page_range (
         // get page number from addr
             pgn = PAGING_PGN (addr);
             pgit = pgn;
-            pte_set_fpn (caller->mm->pgd[pgn], fpit->fpn);
+            PAGING_PTE_SET_PRESENT (caller->mm->pgd[pgn]);
+            pte_set_fpn (&caller->mm->pgd[pgn], fpit->fpn);
             fpit = fpit->fp_next;
             addr += PAGING_PAGESZ;
+            /* Tracking for later page replacement activities (if needed)
+             * Enqueue new usage page */
+            enlist_pgn_node (&caller->mm->lru_pgn, pgn + pgit);
         }
 
-    /* Tracking for later page replacement activities (if needed)
-     * Enqueue new usage page */
-    enlist_pgn_node (&caller->mm->lru_pgn, pgn + pgit);
 
     return 0;
 }
