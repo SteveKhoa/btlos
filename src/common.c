@@ -38,8 +38,8 @@ dump_register (struct pcb_t *ptr)
     printf("Process %d:\n", ptr->pid);
     for (int i = 0 ; i < 10 ; ++i)
     {
-        printf("%4d\n", ptr->regs[i]);
+        printf("reg %d: %4d\n", i, ptr->regs[i]);
     }
-    printf ("============================\n");
+    printf ("===============================\n");
     funlockfile (stdout); // Follows the above flockfile()
 }
