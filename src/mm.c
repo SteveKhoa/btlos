@@ -121,7 +121,7 @@ vmap_page_range (
 
     /* Tracking for later page replacement activities (if needed)
      * Enqueue new usage page */
-    enlist_pgn_node (&caller->mm->fifo_pgn, pgn + pgit);
+    enlist_pgn_node (&caller->mm->lru_pgn, pgn + pgit);
 
     return 0;
 }
@@ -271,11 +271,31 @@ enlist_vm_rg_node (struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
     return 0;
 }
 
-int
-enlist_pgn_node (struct pgn_t **plist, int pgn)
-{
-    struct pgn_t *pnode = malloc (sizeof (struct pgn_t));
+/**
+ * @brief: pgn to the list but if pgn value is already in the list
+ * then move the node to the top instead
+*/
 
+int enlist_pgn_node(struct pgn_t **plist, int pgn)
+{
+    struct pgn_t *pnode = *plist;
+    struct pgn_t *prev = NULL;
+    //Find pgn in the list
+    while (pnode != NULL) {
+        if (pnode->pgn == pgn) {
+            if (prev != NULL) {
+                //move the node to the front
+                prev->pg_next = pnode->pg_next;
+                pnode->pg_next = *plist;
+                *plist = pnode;
+            }
+            return 0;
+        }
+        prev = pnode;
+        pnode = pnode->pg_next;
+    }
+    //pgn not found, create and add the new node to the front of the list
+    pnode = malloc(sizeof(struct pgn_t));
     pnode->pgn = pgn;
     pnode->pg_next = *plist;
     *plist = pnode;
