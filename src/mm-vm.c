@@ -65,7 +65,7 @@ get_vma_by_num (struct mm_struct *mm, int vmaid)
 }
 
 /**
- * @brief Deferencing the Symbol Table to get the region.
+ * @brief Get memory region through Symbol table
  * @param mm The list of areas to get the rg from
  * @param rgid The name of symbol
  */
@@ -92,7 +92,6 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     /*Allocate at the toproof */
     struct vm_rg_struct rgnode;
 
-    // check to see if we can find a region. 0 means yes
     if (get_free_vmrg_area (caller, vmaid, size, &rgnode) == 0)
         {
             caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
@@ -103,8 +102,8 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
             return 0;
         }
 
-    /* When get_free_vmrg_area FAILED to handle the region management,
-    we increase limit to get space */
+    /* When get_free_vmrg_area FAILED handle the region management,
+    we attempt to increate limit to get space */
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
     int inc_sz = PAGING_PAGE_ALIGNSZ (size);
     // int inc_limit_ret
@@ -115,7 +114,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     /* INCREASE THE LIMIT */
     inc_vma_limit (caller, vmaid, inc_sz);
 
-    /* Successfully increase limit */
+    /*Successful increase limit */
     caller->mm->symrgtbl[rgid].rg_start = old_sbrk;
     caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
 
@@ -126,29 +125,30 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
 
 /**
  * @brief Remove a symbol from Virtual memory
- * @param caller: The process requesting the removal.
- * @param vmaid: The id of memory area
- * @param rgid: The name of symbol (currently just numbers allowed)
+ * @param caller The process requesting the removal.
+ * @param vmaid The id of memory area
+ * @param rgid The name of symbol (currently just numbers allowed)
  */
 int
 __free (struct pcb_t *caller, int vmaid, int rgid)
 {
-    // struct vm_rg_struct rgnode;
+    struct vm_rg_struct rgnode;
 
     if (rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
         return -1;
 
-    struct vm_rg_struct *currg = get_symrg_byid (caller->mm, rgid);
-
-    struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
-
-    if (currg == NULL || cur_vma == NULL) /* Invalid memory identify */
-        return -1;
-
-    // int addr = currg->rg_start;
+    /* TODO: Manage the collect freed region to freerg_list */
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
 
     /*enlist the obsoleted memory region */
-    enlist_vm_freerg_list (caller->mm, *currg);
+    enlist_vm_freerg_list (caller->mm, rgnode);
 
     return 0;
 }
@@ -168,12 +168,12 @@ pgalloc (struct pcb_t *proc, uint32_t size, uint32_t reg_index)
     return __alloc (proc, 0, reg_index, size, &addr);
 }
 
-/**
- * @brief Paging-based memory free. Adding the region associated with
- * [reg_index] to free_rg_list
- * @param proc the process requesting
- * @param reg_index rgid
+/*pgfree - PAGING-based free a region memory
+ *@proc: Process executing the instruction
+ *@size: allocated size
+ *@reg_index: memory region ID (used to identify variable in symbole table)
  */
+
 int
 pgfree_data (struct pcb_t *proc, uint32_t reg_index)
 {
@@ -189,17 +189,11 @@ pgfree_data (struct pcb_t *proc, uint32_t reg_index)
 int
 pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 {
-    if (pgn < 0 || pgn >= PAGING_MAX_PGN) // check if pgn is invalid
-        {
-            return -1;
-        }
-
     uint32_t pte = mm->pgd[pgn];
 
-    if (!PAGING_PAGE_PRESENT (pte)) // if PAGE NOT PRESENT
-                                    // pte not initialized
+    if (!PAGING_PAGE_PRESENT (pte))
         { /* Page is not online, make it actively living */
-            // int vicpgn, swpfpn;
+            int vicpgn, swpfpn;
             // int vicfpn;
             // uint32_t vicpte;
 
@@ -207,80 +201,11 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                 = PAGING_SWP (pte); // the target frame storing our variable
 
             /* TODO: Play with your paging theory here */
+            /* Find victim page */
+            find_victim_page (caller->mm, &vicpgn);
 
-            // ==> My idea
-            //  First, we must find if there are free frames or not.
-            //      If there are free frames --> get the frame, who needs swp?
-            //      If not free frames --> Find victim page --> swap physical
-            //      contents of [vicpte] out to SWP, and use that physical
-            //      contents as the new frame for [pte].
-
-            int freefpn;
-            int get_freefp_status = MEMPHY_get_freefp (caller->mram, &freefpn);
-
-            if (get_freefp_status != -1)
-                {
-                    pte_set_fpn (&pte, freefpn);
-                    printf ("Get free frame from RAM succesfully.\n");
-                }
-            else
-                {
-                    int vicpgn;
-                    if (find_victim_page (caller->mm, &vicpgn) == -1)
-                        {
-                            printf ("Get find victim page failed.\n");
-                            return -1;
-                        }
-
-                    uint32_t vicpte = mm->pgd[vicpgn];
-
-                    // Swap the contents of the current page out
-
-                    int mswp_free_frame; // Find a free frame in active mswp
-                    if (MEMPHY_get_freefp (caller->active_mswp,
-                                           &mswp_free_frame)
-                        == -1)
-                        {
-                            // Can not get a free frame in the current mswp
-                            // Question? Will we skip, or we must implement 4
-                            // mswp mechanism
-
-                            // Currently don't know, so assume only one mswp
-                            // was used
-
-                            // Answered: we only use one MSWP, if its full,
-                            // return error.
-
-                            return -1; // If current mswp full, return error.
-                        }
-                    int srcfpn_out = PAGING_FPN (vicpte);
-                    int dstfpn_out = mswp_free_frame;
-                    __swap_cp_page (caller->mram, srcfpn_out,
-                                    caller->active_mswp, dstfpn_out);
-
-                    // And swap the contents from SWP of the needed page in.
-
-                    int srcfpn_in = PAGING_SWP (pte);
-                    int dstfpn_in = PAGING_FPN (vicpte);
-                    __swap_cp_page (caller->mram, srcfpn_in,
-                                    caller->active_mswp, dstfpn_in);
-
-                    int phyaddr_swp
-                        = (mswp_free_frame << PAGING_ADDR_FPN_LOBIT);
-                    int swptyp = 0; // In this assignment, we assume swptyp = 0
-                    int swpoff = phyaddr_swp; // SWP OFFSET, where the frame
-                                              // actually is on MSWP
-
-                    // PTE off pte and victim pte must be updated
-
-                    pte_set_fpn (&pte, dstfpn_in); // the page now become
-                                                   // "RAM"-oriented (32-bits)
-                    pte_set_swap (&vicpte, swptyp,
-                                  swpoff); // the page now become
-                                           // "SWP"-oriented (only 25bits)
-                    printf ("Swapped sucessfully, frame %d updated.\n",
-                            dstfpn_in);
-                }
+            /* Get free frame in MEMSWP */
+            MEMPHY_get_freefp (caller->active_mswp, &swpfpn);
 
             /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
             /* Copy victim frame to swap */
@@ -293,9 +218,9 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
             /* Update its online status of the target page */
             // pte_set_fpn() & mm->pgd[pgn];
-            // pte_set_fpn (&pte, tgtfpn);
+            pte_set_fpn (&pte, tgtfpn);
 
-            enlist_pgn_node (&caller->mm->fifo_pgn, pgn);
+            enlist_pgn_node (&caller->mm->lru_pgn, pgn);
         }
 
     *fpn = PAGING_FPN (pte);
@@ -375,14 +300,6 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
 }
 
 /*pgwrite - PAGING-based read a region memory */
-/**
- * @brief Paging-based memory read.
- * @param proc the process requesting the write
- * @param data BYTE (char) to be written
- * @param destination region id
- * @param offset offset of Virtual Memory Area.
- * @attention the core routine is pg_getval()
- */
 int
 pgread (struct pcb_t *proc, // Process executing the instruction
         uint32_t source,    // Index of source register
@@ -434,7 +351,6 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
  * @param data BYTE (char) to be written
  * @param destination region id
  * @param offset offset of Virtual Memory Area.
- * @attention the core routine is pg_getval()
  */
 int
 pgwrite (struct pcb_t *proc,   // Process executing the instruction
@@ -454,10 +370,10 @@ pgwrite (struct pcb_t *proc,   // Process executing the instruction
     return __write (proc, 0, destination, offset, data);
 }
 
-/** collect all memphy of pcb
- *@param caller: caller
- *@param vmaid: ID vm area to alloc memory region
- *@param incpgnum: number of page
+/*free_pcb_memphy - collect all memphy of pcb
+ *@caller: caller
+ *@vmaid: ID vm area to alloc memory region
+ *@incpgnum: number of page
  */
 int
 free_pcb_memph (struct pcb_t *caller)
@@ -484,13 +400,13 @@ free_pcb_memph (struct pcb_t *caller)
     return 0;
 }
 
-/** In this context, node means region.
- * @brief Construct a new region from sbrk.
- * @param caller: process
- * @param vmaid: vm area in context
- * @param size: requested size
- * @param alignedsz: (never used)
- * @return a new region starting at sbrk and ending at sbrk + size
+/*get_vm_area_node - get vm area for a number of pages
+ *@caller: caller
+ *@vmaid: ID vm area to alloc memory region
+ *@incpgnum: number of page
+ *@vmastart: vma end
+ *@vmaend: vma end
+ *
  */
 struct vm_rg_struct *
 get_vm_area_node_at_brk (struct pcb_t *caller, int vmaid, int size,
@@ -501,25 +417,18 @@ get_vm_area_node_at_brk (struct pcb_t *caller, int vmaid, int size,
 
     newrg = malloc (sizeof (struct vm_rg_struct));
 
-    // new region starts at virtual memory area's sbrk
     newrg->rg_start = cur_vma->sbrk;
     newrg->rg_end = newrg->rg_start + size;
 
     return newrg;
 }
 
-/** validate_overlap_vm_area
- *@param: caller: caller
- *@param: vmaid: ID vm area to alloc memory region
- *@param: vmastart: vma end
- *@param: vmaend: vma end
+/*validate_overlap_vm_area
+ *@caller: caller
+ *@vmaid: ID vm area to alloc memory region
+ *@vmastart: vma end
+ *@vmaend: vma end
  *
- */
-/**
- * @brief Validate the the VM Area does not overlap with any other VM Area
- * region.
- * @note DEPRECATED - our project only has one VM Area. No implementation is
- * done. Always return 0.
  */
 int
 validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
@@ -528,8 +437,6 @@ validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
     // struct vm_area_struct *vma = caller->mm->mmap;
 
     /* TODO validate the planned memory area is not overlapped */
-
-    // NK: don't implement this.
 
     return 0;
 }
@@ -544,14 +451,9 @@ validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
 int
 inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
 {
-    // construct a new region
     struct vm_rg_struct *newrg = malloc (sizeof (struct vm_rg_struct));
-    // let's see how much we increase
     int inc_amt = PAGING_PAGE_ALIGNSZ (inc_sz);
-    // how many pages are needed
     int incnumpage = inc_amt / PAGING_PAGESZ;
-    // "area" is a region starting at sbrk and ending at sbrk + size.
-    // It is used to check overlapping between regions
     struct vm_rg_struct *area
         = get_vm_area_node_at_brk (caller, vmaid, inc_sz, inc_amt);
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
@@ -565,7 +467,6 @@ inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
 
     /* The obtained vm area (only)
      * now will be alloc real ram region */
-    // Note: This is only done after we see no overlapping
     cur_vma->vm_end += inc_sz;
     if (vm_map_ram (caller, area->rg_start, area->rg_end, old_end, incnumpage,
                     newrg)
@@ -580,51 +481,59 @@ inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
  * of [mm].
  * @param mm memory mapping structure
  * @param retpgn suggested victim page
+ * @return 0 if successful, -1 if page list is empty
  */
 int
 find_victim_page (struct mm_struct *mm, int *retpgn)
 {
-    struct pgn_t *pg = mm->fifo_pgn;
-
+    struct pgn_t *pg = mm->lru_pgn;
     /* TODO: Implement the theorical mechanism to find the victim page */
-
-    free (pg);
-
-    // Just dummy code written by NK
-    // Remove this if your merge is conflict with this.
-    *retpgn = 0;
-
+    //Empty list
+    if(pg == NULL) 
+    {
+        return -1;
+    }
+    //list only have 1 page
+    if(pg->pg_next == NULL) 
+    {
+        retpgn = pg->pgn;
+        free(pg);
+        pg = NULL;
+        return 0;
+    }
+    /**
+     * find the second-last entry in the list and assign the value 
+     * of the last node to retpgn
+    */
+    while(pg->pg_next->pg_next != NULL) 
+    {
+        pg = pg->pg_next;
+    }
+    retpgn = pg->pg_next->pgn;
+    
+    free (pg->pg_next);
+    pg->pg_next = NULL;
     return 0;
 }
 
-/** get_free_vmrg_area - get a free vm region
+/*get_free_vmrg_area - get a free vm region
  *@caller: caller
  *@vmaid: ID vm area to alloc memory region
  *@size: allocated size
  *
  */
-/**
- * @brief Request a new region in VM Area using First-fit algorithm.
- * @param caller the process requesting
- * @param vmaid vm area id.
- * @param size the size of
- */
 int
 get_free_vmrg_area (struct pcb_t *caller, int vmaid, int size,
                     struct vm_rg_struct *newrg)
 {
-    // get current virtual memory area
-    // we only have 1 area regarding the scope of this assignment
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
 
-    // rgit is an iterator through the list of free regions in an area
     struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
 
-    // if there is no free region:
     if (rgit == NULL)
         return -1;
 
-    /* Probe uninitialized newrg */
+    /* Probe unintialized newrg */
     newrg->rg_start = newrg->rg_end = -1;
 
     /* Traverse on list of free vm region to find a fit space */
