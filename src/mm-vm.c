@@ -295,7 +295,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
             // pte_set_fpn() & mm->pgd[pgn];
             // pte_set_fpn (&pte, tgtfpn);
 
-            enlist_pgn_node (&caller->mm->fifo_pgn, pgn);
+            enlist_pgn_node (&caller->mm->lru_pgn, pgn);
         }
 
     *fpn = PAGING_FPN (pte);
@@ -580,20 +580,38 @@ inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
  * of [mm].
  * @param mm memory mapping structure
  * @param retpgn suggested victim page
+ * @return 0 if successful, -1 if page list is empty
  */
 int
 find_victim_page (struct mm_struct *mm, int *retpgn)
 {
-    struct pgn_t *pg = mm->fifo_pgn;
-
+    struct pgn_t *pg = mm->lru_pgn;
     /* TODO: Implement the theorical mechanism to find the victim page */
-
-    free (pg);
-
-    // Just dummy code written by NK
-    // Remove this if your merge is conflict with this.
-    *retpgn = 0;
-
+    //Empty list
+    if(pg == NULL) 
+    {
+        return -1;
+    }
+    //list only have 1 page
+    if(pg->pg_next == NULL) 
+    {
+        retpgn = pg->pgn;
+        free(pg);
+        pg = NULL;
+        return 0;
+    }
+    /**
+     * find the second-last entry in the list and assign the value 
+     * of the last node to retpgn
+    */
+    while(pg->pg_next->pg_next != NULL) 
+    {
+        pg = pg->pg_next;
+    }
+    retpgn = pg->pg_next->pgn;
+    
+    free (pg->pg_next);
+    pg->pg_next = NULL;
     return 0;
 }
 
