@@ -8,3 +8,8 @@ src/*.d
 NOTES.txt
 *.dSYM
 /.vscode
+/test/*.d
+/test/sched
+/test/memphy
+/test/queue
+/test/sample

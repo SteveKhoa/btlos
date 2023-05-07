@@ -45,6 +45,10 @@ putproc_simple (const MunitParameter params[], void *user_data_or_fixture)
     struct pcb_t *proc2 = create_pcb (1, 1, NULL, 0, NULL, 0); // prio = 1
     struct pcb_t *proc3 = create_pcb (2, 9, NULL, 0, NULL, 0); // prio = 9
 
+    proc1->prio = 0;
+    proc2->prio = 1;
+    proc3->prio = 9;
+
     put_proc (proc1);
     put_proc (proc2);
     put_proc (proc3);
@@ -109,6 +113,10 @@ putproc_same_priority (const MunitParameter params[],
     struct pcb_t *proc2 = create_pcb (1, 0, NULL, 0, NULL, 0); // prio = 0
     struct pcb_t *proc3 = create_pcb (2, 0, NULL, 0, NULL, 0); // prio = 0
 
+    proc1->prio = 0;
+    proc2->prio = 0;
+    proc3->prio = 0;
+
     put_proc (proc1);
     put_proc (proc2);
     put_proc (proc3);
@@ -132,6 +140,10 @@ getproc_simple (const MunitParameter params[], void *user_data_or_fixture)
     struct pcb_t *proc1 = create_pcb (0, 0, NULL, 0, NULL, 0); // prio = 0
     struct pcb_t *proc2 = create_pcb (1, 1, NULL, 0, NULL, 0); // prio = 1
     struct pcb_t *proc3 = create_pcb (2, 9, NULL, 0, NULL, 0); // prio = 9
+
+    proc1->prio = 0;
+    proc2->prio = 1;
+    proc3->prio = 9;
 
     put_proc (proc3);
     put_proc (proc2);
@@ -192,6 +204,14 @@ getproc_complex (const MunitParameter params[], void *user_data_or_fixture)
     struct pcb_t *proc5 = create_pcb (4, 1, NULL, 0, NULL, 0);
     struct pcb_t *proc6 = create_pcb (5, 3, NULL, 0, NULL, 0);
     struct pcb_t *proc7 = create_pcb (6, 4, NULL, 0, NULL, 0);
+
+    proc1->prio = 1;
+    proc2->prio = 2;
+    proc3->prio = 3;
+    proc4->prio = 1;
+    proc5->prio = 1;
+    proc6->prio = 3;
+    proc7->prio = 4;
 
     put_proc (proc1);
     put_proc (proc2);
@@ -305,6 +325,15 @@ MunitTest tests[]
             NULL                    /* parameters to the test func */
         },
         { NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL } };
+MunitTest test_put_proc[]
+    = {{
+            "trick",         /* name of the test */
+            putproc_simple,         /* test func */
+            NULL,                   /* setup func (test constructor) */
+            NULL,                   /* tear_down func (test destructor) */
+            MUNIT_TEST_OPTION_NONE, /* options */
+            NULL                    /* parameters to the test func */
+        }};
 
 static const MunitSuite suite = {
     "",                     /* name */

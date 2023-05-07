@@ -9,9 +9,9 @@
  *
  */
 
-#include "queue.h"
-#include "common.h"
-#include "munit.h"
+#include "../include/queue.h"
+#include "../include/common.h"
+#include "../ext/munit.h"
 #include <stdio.h>
 #include <stdlib.h>
 

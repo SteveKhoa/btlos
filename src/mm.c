@@ -1,7 +1,7 @@
 /**
  * @file mm.c
  * @category Implementation source code
- * @brief
+ * @brief 
  *      Implementation of Page-directory operations
  */
 
@@ -92,32 +92,44 @@ pte_set_fpn (uint32_t *pte, int fpn)
     return 0;
 }
 
-/*
- * vmap_page_range - map a range of page at aligned address
+/** vmap_page_range - map a range of page at aligned address
+ * @param caller: process
+ * @param addr: start address which is aligned to pagesz
+ * @param pgnum: number of pages need mapping
+ * @param frames: list of mapped frames
+ * @param ret_rg: return mapped region, the mapped fp (no guarantee all pages mapped)
  */
 int
 vmap_page_range (
-    struct pcb_t *caller,           // process call
-    int addr,                       // start address which is aligned to pagesz
-    int pgnum,                      // num of mapping page
-    struct framephy_struct *frames, // list of the mapped frames
-    struct vm_rg_struct *ret_rg)    // return mapped region, the real mapped fp
-{                                   // no guarantee all given pages are mapped
+    struct pcb_t *caller,
+    int addr,
+    int pgnum,
+    struct framephy_struct *frames,
+    struct vm_rg_struct *ret_rg)
+{
     // uint32_t * pte = malloc(sizeof(uint32_t));
     struct framephy_struct *fpit = malloc (sizeof (struct framephy_struct));
     // int  fpn;
     int pgit = 0;
-    int pgn = PAGING_PGN (addr);
 
-    ret_rg->rg_end = ret_rg->rg_start
-        = addr; // at least the very first space is usable
+//    ret_rg->rg_end = ret_rg->rg_start
+//        = addr; // at least the very first space is usable
 
-    fpit->fp_next = frames;
 
     /* TODO map range of frame to address space
-     *      [addr to addr + pgnum*PAGING_PAGESZ
+     *      [addr to addr + pgnum * PAGING_PAGESZ
      *      in page table caller->mm->pgd[]
      */
+    int pgn;
+    fpit = frames;
+    while(fpit){
+        // get page number from addr
+            pgn = PAGING_PGN (addr);
+            pgit = pgn;
+            pte_set_fpn (caller->mm->pgd[pgn], fpit->fpn);
+            fpit = fpit->fp_next;
+            addr += PAGING_PAGESZ;
+        }
 
     /* Tracking for later page replacement activities (if needed)
      * Enqueue new usage page */
@@ -235,6 +247,7 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
      *in endless procedure of swap-off to get frame and we have not provide
      *duplicate control mechanism, keep it simple
      */
+
     ret_alloc = alloc_pages_range (caller, incpgnum, &frm_lst);
 
     if (ret_alloc < 0 && ret_alloc != -3000)
@@ -249,8 +262,10 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
             return -1;
         }
 
-    /* it leaves the case of memory is enough but half in ram, half in swap
-     * do the swaping all to swapper to get the all in ram */
+    /* If there is enough memory available but it is split between RAM and swap,
+     * the code performs swapping operations to bring all the required data into RAM.
+     * This ensures that the entire data set is resident in RAM rather than being partially stored in swap.
+     * */
     vmap_page_range (caller, mapstart, incpgnum, frm_lst, ret_rg);
 
     return 0;
@@ -287,24 +302,6 @@ __swap_cp_page (struct memphy_struct *mpsrc, int srcfpn,
  *Initialize a empty Memory Management instance
  * @mm:     self mm
  * @caller: mm owner
- */
-/**
- * @brief Initialize Memory Management device. It does the following tasks:
- *
- *  1. Allocate the Virtual Memory Area (vma);
- *  2. Allocate the Page directory (pgd);
- *  3. Allocate Virtual Memory Region (rg) and add it to Free Region List
- * (vm_free_rg_list) of (vma).
- *
- * @param mm the mm device.
- * @param caller the process requesting the mm initialization.(DEPRECATED, not
- * used). Encouraged to pass NULL into this parameter;
- *
- * @return 0 always succesful. [mm] attributes are fully initialized.
- *
- * @note [mm] must be malloc before passed into this function.
- * @note (vma) is initially empty (vm_start = vm_end = sbrk = 0), it has only
- * one free region and also empty (rg_start = rg_end = 0).
  */
 int
 init_mm (struct mm_struct *mm, struct pcb_t *caller)

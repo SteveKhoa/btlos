@@ -92,6 +92,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     /*Allocate at the toproof */
     struct vm_rg_struct rgnode;
 
+    // check to see if we can find a region. 0 means yes
     if (get_free_vmrg_area (caller, vmaid, size, &rgnode) == 0)
         {
             caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
@@ -102,8 +103,8 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
             return 0;
         }
 
-    /* When get_free_vmrg_area FAILED handle the region management,
-    we attempt to increate limit to get space */
+    /* When get_free_vmrg_area FAILED to handle the region management,
+    we increase limit to get space */
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
     int inc_sz = PAGING_PAGE_ALIGNSZ (size);
     // int inc_limit_ret
@@ -114,7 +115,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     /* INCREASE THE LIMIT */
     inc_vma_limit (caller, vmaid, inc_sz);
 
-    /*Successful increase limit */
+    /* Successfully increase limit */
     caller->mm->symrgtbl[rgid].rg_start = old_sbrk;
     caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
 
@@ -125,9 +126,9 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
 
 /**
  * @brief Remove a symbol from Virtual memory
- * @param caller The process requesting the removal.
- * @param vmaid The id of memory area
- * @param rgid The name of symbol (currently just numbers allowed)
+ * @param caller: The process requesting the removal.
+ * @param vmaid: The id of memory area
+ * @param rgid: The name of symbol (currently just numbers allowed)
  */
 int
 __free (struct pcb_t *caller, int vmaid, int rgid)
@@ -453,10 +454,10 @@ pgwrite (struct pcb_t *proc,   // Process executing the instruction
     return __write (proc, 0, destination, offset, data);
 }
 
-/*free_pcb_memphy - collect all memphy of pcb
- *@caller: caller
- *@vmaid: ID vm area to alloc memory region
- *@incpgnum: number of page
+/** collect all memphy of pcb
+ *@param caller: caller
+ *@param vmaid: ID vm area to alloc memory region
+ *@param incpgnum: number of page
  */
 int
 free_pcb_memph (struct pcb_t *caller)
@@ -483,13 +484,13 @@ free_pcb_memph (struct pcb_t *caller)
     return 0;
 }
 
-/*get_vm_area_node - get vm area for a number of pages
- *@caller: caller
- *@vmaid: ID vm area to alloc memory region
- *@incpgnum: number of page
- *@vmastart: vma end
- *@vmaend: vma end
- *
+/** In this context, node means region.
+ * @brief Construct a new region from sbrk.
+ * @param caller: process
+ * @param vmaid: vm area in context
+ * @param size: requested size
+ * @param alignedsz: (never used)
+ * @return a new region starting at sbrk and ending at sbrk + size
  */
 struct vm_rg_struct *
 get_vm_area_node_at_brk (struct pcb_t *caller, int vmaid, int size,
@@ -500,17 +501,18 @@ get_vm_area_node_at_brk (struct pcb_t *caller, int vmaid, int size,
 
     newrg = malloc (sizeof (struct vm_rg_struct));
 
+    // new region starts at virtual memory area's sbrk
     newrg->rg_start = cur_vma->sbrk;
     newrg->rg_end = newrg->rg_start + size;
 
     return newrg;
 }
 
-/*validate_overlap_vm_area
- *@caller: caller
- *@vmaid: ID vm area to alloc memory region
- *@vmastart: vma end
- *@vmaend: vma end
+/** validate_overlap_vm_area
+ *@param: caller: caller
+ *@param: vmaid: ID vm area to alloc memory region
+ *@param: vmastart: vma end
+ *@param: vmaend: vma end
  *
  */
 /**
@@ -542,9 +544,14 @@ validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
 int
 inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
 {
+    // construct a new region
     struct vm_rg_struct *newrg = malloc (sizeof (struct vm_rg_struct));
+    // let's see how much we increase
     int inc_amt = PAGING_PAGE_ALIGNSZ (inc_sz);
+    // how many pages are needed
     int incnumpage = inc_amt / PAGING_PAGESZ;
+    // "area" is a region starting at sbrk and ending at sbrk + size.
+    // It is used to check overlapping between regions
     struct vm_rg_struct *area
         = get_vm_area_node_at_brk (caller, vmaid, inc_sz, inc_amt);
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
@@ -558,6 +565,7 @@ inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
 
     /* The obtained vm area (only)
      * now will be alloc real ram region */
+    // Note: This is only done after we see no overlapping
     cur_vma->vm_end += inc_sz;
     if (vm_map_ram (caller, area->rg_start, area->rg_end, old_end, incnumpage,
                     newrg)
@@ -589,7 +597,7 @@ find_victim_page (struct mm_struct *mm, int *retpgn)
     return 0;
 }
 
-/*get_free_vmrg_area - get a free vm region
+/** get_free_vmrg_area - get a free vm region
  *@caller: caller
  *@vmaid: ID vm area to alloc memory region
  *@size: allocated size
@@ -605,14 +613,18 @@ int
 get_free_vmrg_area (struct pcb_t *caller, int vmaid, int size,
                     struct vm_rg_struct *newrg)
 {
+    // get current virtual memory area
+    // we only have 1 area regarding the scope of this assignment
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
 
+    // rgit is an iterator through the list of free regions in an area
     struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
 
+    // if there is no free region:
     if (rgit == NULL)
         return -1;
 
-    /* Probe unintialized newrg */
+    /* Probe uninitialized newrg */
     newrg->rg_start = newrg->rg_end = -1;
 
     /* Traverse on list of free vm region to find a fit space */

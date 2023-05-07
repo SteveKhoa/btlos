@@ -181,6 +181,12 @@ put_mlq_proc (struct pcb_t *proc)
      *
      */
     pthread_mutex_lock (&queue_lock);
+//    printf ("\nlook at its prio: %d\n", proc->prio);
+    if (proc->prio < 0 || proc->prio >= MAX_PRIO)
+        {
+            pthread_mutex_unlock(&queue_lock);
+            return;
+        }
     enqueue (&mlq_ready_queue[proc->prio], proc);
     pthread_mutex_unlock (&queue_lock);
 }
@@ -195,6 +201,11 @@ add_mlq_proc (struct pcb_t *proc)
      * @remark NK agreed with your idea
      */
     pthread_mutex_lock (&queue_lock);
+    if (proc->prio < 0 || proc->prio >= MAX_PRIO)
+        {
+            pthread_mutex_unlock(&queue_lock);
+            return;
+        }
     enqueue (&mlq_ready_queue[proc->prio], proc);
     pthread_mutex_unlock (&queue_lock);
 }

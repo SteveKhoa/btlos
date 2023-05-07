@@ -258,7 +258,7 @@ main (int argc, char *argv[])
         }
     char path[100];
     path[0] = '\0';
-     strcat (path, "input/"); // Don't concatenate, we want to explicitly
+     strcat (path, "input/");
     // set the path
     strcat (path, argv[1]);
     read_config (path);
@@ -293,7 +293,7 @@ main (int argc, char *argv[])
     for (sit = 0; sit < PAGING_MAX_MMSWP; sit++)
         init_memphy (&mswp[sit], memswpsz[sit], rdmflag);
 
-    /* In Paging mode, it needs passing the system mem to each PCB through
+    /* In Paging mode, it needs pass the system mem to each PCB through
      * loader*/
     struct mmpaging_ld_args *mm_ld_args
         = malloc (sizeof (struct mmpaging_ld_args));
