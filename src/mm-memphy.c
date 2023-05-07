@@ -263,7 +263,7 @@ MEMPHY_dump (struct memphy_struct *mp)
             int fpn = phyaddr >> PAGING_ADDR_FPN_LOBIT;
 
             if (mp->storage[phyaddr] != '\0') // if that position is clean
-                printf ("%7d  %010d:%7c\n", fpn, phyaddr,
+                printf ("%7d  %010d:%7d\n", fpn, phyaddr,
                         mp->storage[phyaddr]);
         }
     printf ("============================\n");
