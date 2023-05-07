@@ -77,7 +77,13 @@
 #define PAGING_SWP(pte) ((pte & PAGING_SWP_MASK) >> PAGING_SWPFPN_OFFSET)
 
 /* Value operators */
+
+// Set bit-string to [mask]. For example, v=0010, mask=1000,SETBIT produces
+// retval=1010
 #define SETBIT(v, mask) (v = v | mask)
+
+// Clear [mask] from bit-string. For example, v=1010, mask=1000, CLRBIT
+// produces retval=0010
 #define CLRBIT(v, mask) (v = v & ~mask)
 
 #define SETVAL(v, value, mask, offst)                                         \

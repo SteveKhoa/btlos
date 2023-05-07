@@ -281,6 +281,23 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                     pte_set_swap (&vicpte, swptyp,
                                   swpoff); // the page now become
                                            // "SWP"-oriented (only 25bits)
+
+                    SETBIT (pte,                      // Make pte "present"
+                            PAGING_PTE_PRESENT_MASK); // Duplicate with
+                                                      // pte_set_fpn's macro.
+                                                      // However, this macro is
+                                                      // still put here to
+                                                      // clarify the flow of
+                                                      // pg_getpage algorithm.
+                    CLRBIT (
+                        vicpte,
+                        PAGING_PTE_PRESENT_MASK); // Make vicpte "unpresent"
+                                                  // Note that this CLRBIT must
+                                                  // come AFTER pte_set_swap()
+
+                    mm->pgd[vicpgn] = vicpte; // Update page table
+                    mm->pgd[pgn] = pte;       // Update page table
+
                     printf ("Swapped sucessfully, frame %d updated.\n",
                             dstfpn_in);
                 }
@@ -395,7 +412,8 @@ pgread (struct pcb_t *proc, // Process executing the instruction
     BYTE data;
     int val = __read (proc, 0, source, offset, &data);
 
-    destination = (uint32_t)data;
+    // destination = (uint32_t)data; // ignore this
+    proc->regs[destination] = data;
 #ifdef IODUMP
     printf ("read region=%d offset=%d value=%d\n", source, offset, data);
 #ifdef PAGETBL_DUMP

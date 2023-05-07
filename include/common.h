@@ -132,4 +132,6 @@ struct pcb_t *create_pcb (uint32_t pid, uint32_t priority,
  */
 void destroy_pcb (struct pcb_t *ptr);
 
+void dump_register(struct pcb_t *ptr);
+
 #endif
