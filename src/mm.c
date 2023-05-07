@@ -92,21 +92,26 @@ pte_set_fpn (uint32_t *pte, int fpn)
     return 0;
 }
 
-/*
- * vmap_page_range - map a range of page at aligned address
+/** vmap_page_range - map a range of page at aligned address
+ * @param caller: process
+ * @param addr: start address which is aligned to pagesz
+ * @param pgnum: number of pages need mapping
+ * @param frames: list of mapped frames
+ * @param ret_rg: return mapped region, the mapped fp (no guarantee all pages mapped)
  */
 int
 vmap_page_range (
-    struct pcb_t *caller,           // process call
-    int addr,                       // start address which is aligned to pagesz
-    int pgnum,                      // num of mapping page
-    struct framephy_struct *frames, // list of the mapped frames
-    struct vm_rg_struct *ret_rg)    // return mapped region, the real mapped fp
-{                                   // no guarantee all given pages are mapped
+    struct pcb_t *caller,
+    int addr,
+    int pgnum,
+    struct framephy_struct *frames,
+    struct vm_rg_struct *ret_rg)
+{
     // uint32_t * pte = malloc(sizeof(uint32_t));
     struct framephy_struct *fpit = malloc (sizeof (struct framephy_struct));
     // int  fpn;
     int pgit = 0;
+    // get page number from addr
     int pgn = PAGING_PGN (addr);
 
     ret_rg->rg_end = ret_rg->rg_start
@@ -115,7 +120,7 @@ vmap_page_range (
     fpit->fp_next = frames;
 
     /* TODO map range of frame to address space
-     *      [addr to addr + pgnum*PAGING_PAGESZ
+     *      [addr to addr + pgnum * PAGING_PAGESZ
      *      in page table caller->mm->pgd[]
      */
 
@@ -126,8 +131,7 @@ vmap_page_range (
     return 0;
 }
 
-/*
- * alloc_pages_range - allocate req_pgnum of frame in ram
+/** allocate req_pgnum of frames in ram
  * @caller    : caller
  * @req_pgnum : request page num
  * @frm_lst   : frame list
@@ -153,14 +157,13 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
     return 0;
 }
 
-/*
- * vm_map_ram - do the mapping all vm are to ram storage device
- * @caller    : caller
- * @astart    : vm area start
- * @aend      : vm area end
- * @mapstart  : start mapping point
- * @incpgnum  : number of mapped page
- * @ret_rg    : returned region
+/** vm_map_ram - do the mapping all vm are to ram storage device
+ * @param caller: process
+ * @param astart: vm area start
+ * @param aend: vm area end
+ * @param mapstart: start mapping point
+ * @param incpgnum: number of mapped page
+ * @param ret_rg: returned region
  */
 int
 vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
@@ -176,6 +179,7 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
      *in endless procedure of swap-off to get frame and we have not provide
      *duplicate control mechanism, keep it simple
      */
+
     ret_alloc = alloc_pages_range (caller, incpgnum, &frm_lst);
 
     if (ret_alloc < 0 && ret_alloc != -3000)
@@ -197,11 +201,11 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
     return 0;
 }
 
-/* Swap copy content page from source frame to destination frame
- * @mpsrc  : source memphy
- * @srcfpn : source physical page number (FPN)
- * @mpdst  : destination memphy
- * @dstfpn : destination physical page number (FPN)
+/** Swap copy content page from source frame to destination frame
+ * @param mpsrc  : source memphy
+ * @param srcfpn : source physical page number (FPN)
+ * @param mpdst  : destination memphy
+ * @param dstfpn : destination physical page number (FPN)
  **/
 int
 __swap_cp_page (struct memphy_struct *mpsrc, int srcfpn,
