@@ -133,23 +133,22 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
 int
 __free (struct pcb_t *caller, int vmaid, int rgid)
 {
-    struct vm_rg_struct rgnode;
+    // struct vm_rg_struct rgnode;
 
     if (rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
         return -1;
 
-    /* TODO: Manage the collect freed region to freerg_list */
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
+    struct vm_rg_struct *currg = get_symrg_byid (caller->mm, rgid);
+
+    struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
+
+    if (currg == NULL || cur_vma == NULL) /* Invalid memory identify */
+        return -1;
+
+    // int addr = currg->rg_start;
 
     /*enlist the obsoleted memory region */
-    enlist_vm_freerg_list (caller->mm, rgnode);
+    enlist_vm_freerg_list (caller->mm, *currg);
 
     return 0;
 }
@@ -519,7 +518,8 @@ get_vm_area_node_at_brk (struct pcb_t *caller, int vmaid, int size,
 /**
  * @brief Validate the the VM Area does not overlap with any other VM Area
  * region.
- * @note DEPRECATED - our project only has one VM Area.
+ * @note DEPRECATED - our project only has one VM Area. No implementation is
+ * done. Always return 0.
  */
 int
 validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
@@ -528,6 +528,8 @@ validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
     // struct vm_area_struct *vma = caller->mm->mmap;
 
     /* TODO validate the planned memory area is not overlapped */
+
+    // NK: don't implement this.
 
     return 0;
 }

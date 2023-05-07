@@ -138,12 +138,48 @@ vmap_page_range (
     return 0;
 }
 
-/** allocate req_pgnum of frames in ram
- * @caller    : caller
- * @req_pgnum : request page num
- * @frm_lst   : frame list
+/**
+ * @brief Enlist [fpn] to [frm_lst] linked list.
+ * @author NK
  */
+int
+enlist_framephy (struct mm_struct *mm, struct framephy_struct **frm_lst,
+                 int fpn)
+{
+    if (frm_lst == NULL)
+        return -1;
 
+    struct framephy_struct *p = *frm_lst;
+
+    if (p == NULL) // if Frame list currently empty
+        {
+            *frm_lst = malloc (sizeof (struct framephy_struct));
+            (*frm_lst)->fpn = fpn;
+            (*frm_lst)->fp_next = NULL;
+            (*frm_lst)->owner = mm;
+        }
+    else // if Frame is NOT empty
+        {
+
+            while (p->fp_next != NULL)
+                {
+                    p = p->fp_next;
+                }
+
+            p->fp_next = malloc (sizeof (struct framephy_struct));
+            p->fp_next->fpn = fpn;
+            p->fp_next->fp_next = NULL;
+            p->fp_next->owner = mm;
+        }
+}
+
+/**
+ * @brief Try to get [req_pgnum] free frames.
+ * @param caller the process requesting
+ * @param req_pgnum requested number of pages (also number of frames requested)
+ * @param frm_lst store the new free frames list. (frm_lst should be empty
+ * before passed into)
+ */
 int
 alloc_pages_range (struct pcb_t *caller, int req_pgnum,
                    struct framephy_struct **frm_lst)
@@ -155,22 +191,47 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
         {
             if (MEMPHY_get_freefp (caller->mram, &fpn) == 0)
                 {
+                    // Add fpn to frm_lst
+                    enlist_framephy (caller->mm, frm_lst, fpn);
                 }
             else
-                { // ERROR CODE of obtaining somes but not enough frames
+                { // ERROR CODE of obtaining somes but not enough frames.
+
+                    // If not enough frames, we give back all frames to MEMPHY
+                    // and issue error code (-1)
+
+                    for (struct framephy_struct *p = *frm_lst; p != NULL;
+                         p = p->fp_next)
+                        {
+                            int id = p->fpn;
+                            MEMPHY_put_freefp (caller->mram, id);
+                        }
+
+                    // Dealloc resources of frm_lst
+                    struct framephy_struct *p = *frm_lst;
+                    while (p != NULL)
+                        {
+                            struct framephy_struct *pnext = p->fp_next;
+                            free (p);
+                            p = pnext;
+                        }
+
+                    *frm_lst = NULL;
+                    return -1;
                 }
         }
 
     return 0;
 }
 
-/** vm_map_ram - do the mapping all vm are to ram storage device
- * @param caller: process
- * @param astart: vm area start
- * @param aend: vm area end
- * @param mapstart: start mapping point
- * @param incpgnum: number of mapped page
- * @param ret_rg: returned region
+/**
+ * @brief do the mapping all vm are to ram storage device
+ * @param caller caller
+ * @param astart vm area start
+ * @param aend vm area end
+ * @param mapstart start mapping point
+ * @param incpgnum number of mapped page
+ * @param ret_rg returned region
  */
 int
 vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
@@ -210,12 +271,14 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
     return 0;
 }
 
-/** Swap copy content page from source frame to destination frame
- * @param mpsrc  : source memphy
- * @param srcfpn : source physical page number (FPN)
- * @param mpdst  : destination memphy
- * @param dstfpn : destination physical page number (FPN)
- **/
+/**
+ * @brief Read from [srcfpn] frame and write to [dstfpn] frame.
+ * @param mpsrc source memphy
+ * @param mpdst destination memphy
+ * @param srcfpn source frame id
+ * @param dstfon destination frame id.
+ * @return 0 always sucessful.
+ */
 int
 __swap_cp_page (struct memphy_struct *mpsrc, int srcfpn,
                 struct memphy_struct *mpdst, int dstfpn)
@@ -263,6 +326,9 @@ init_mm (struct mm_struct *mm, struct pcb_t *caller)
     return 0;
 }
 
+/**
+ * @brief init a vm_rg_struct
+ */
 struct vm_rg_struct *
 init_vm_rg (int rg_start, int rg_end)
 {
@@ -275,6 +341,9 @@ init_vm_rg (int rg_start, int rg_end)
     return rgnode;
 }
 
+/**
+ * @brief add a [rgnode] to [rglist].
+ */
 int
 enlist_vm_rg_node (struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
 {
@@ -284,6 +353,9 @@ enlist_vm_rg_node (struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
     return 0;
 }
 
+/**
+ * @brief add a page number to [plist]
+ */
 int
 enlist_pgn_node (struct pgn_t **plist, int pgn)
 {

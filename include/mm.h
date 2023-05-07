@@ -3,7 +3,7 @@
  * @category Interface for memory management
  * @brief Declarations and Macro definitions of all routines related to memory
  * mapping.
-*/
+ */
 #ifndef MM_H
 
 #include "bitops.h"
@@ -113,6 +113,8 @@ struct vm_rg_struct *init_vm_rg (int rg_start, int rg_endi);
 int enlist_vm_rg_node (struct vm_rg_struct **rglist,
                        struct vm_rg_struct *rgnode);
 int enlist_pgn_node (struct pgn_t **pgnlist, int pgn);
+int enlist_framephy (struct mm_struct *mm, struct framephy_struct **frm_lst,
+                     int fpn);
 int vmap_page_range (struct pcb_t *caller, int addr, int pgnum,
                      struct framephy_struct *frames,
                      struct vm_rg_struct *ret_rg);
@@ -151,7 +153,7 @@ int pgwrite (struct pcb_t *proc,   // Process executing the instruction
              BYTE data,            // Data to be wrttien into memory
              uint32_t destination, // Index of destination register
              uint32_t offset);
-             
+
 /* Local VM prototypes */
 
 struct vm_rg_struct *get_symrg_byid (struct mm_struct *mm, int rgid);
