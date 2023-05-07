@@ -13,8 +13,8 @@
  */
 
 #include "mm.h"
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /**
  * @brief Increase the [cursor] of [mp] to [offset].
@@ -193,6 +193,14 @@ MEMPHY_format (struct memphy_struct *mp, int pagesz)
     return 0;
 }
 
+/**
+ * @brief Get free frames from free_fp_list. The frame got will be stored in
+ * retfpn. This function fails if the memory is used up (return -1).
+ * @param mp physical memory device
+ * @param retfpn return frame number
+ * @return 0 if there is frame (and stored in retfpn); -1 if failed (retfpn
+ * undefined)
+ */
 int
 MEMPHY_get_freefp (struct memphy_struct *mp, int *retfpn)
 {
@@ -212,6 +220,12 @@ MEMPHY_get_freefp (struct memphy_struct *mp, int *retfpn)
     return 0;
 }
 
+/**
+ * @brief Add frame (id = [fpn]) to free frame list.
+ * @param mp physical memory device
+ * @param fpn the frame id.
+ * @return 0 always successful.
+*/
 int
 MEMPHY_put_freefp (struct memphy_struct *mp, int fpn)
 {
@@ -226,19 +240,40 @@ MEMPHY_put_freefp (struct memphy_struct *mp, int fpn)
     return 0;
 }
 
+/**
+ * @brief Dump out the contents of Physical Memory device [mp]. Only the used
+ * positions are displayed, unused positions are hidden.
+ */
 int
 MEMPHY_dump (struct memphy_struct *mp)
 {
     /*TODO dump memphy contnt mp->storage
      *     for tracing the memory content
      */
+    flockfile (stdout); // To avoid the dump messages
+                        // interleaved by external messages
+    printf ("=== Physical Memory Dump ===\n");
+    printf ("%7s  %10s:%7s\n", "fpn", "phyaddr", "value");
+    for (int phyaddr = 0; phyaddr < mp->maxsz; phyaddr++)
+        {
+            // int fpn = -1;
+            // Map fpn from phyaddr
+            // from mm-vm.c: int phyaddr = (fpn << PAGING_ADDR_FPN_LOBIT) +
+            // off;
+            int fpn = phyaddr >> PAGING_ADDR_FPN_LOBIT;
 
+            if (mp->storage[phyaddr] != '\0') // if that position is clean
+                printf ("%7d  %010d:%7c\n", fpn, phyaddr,
+                        mp->storage[phyaddr]);
+        }
+    printf ("============================\n");
+    funlockfile (stdout); // Follows the above flockfile()
     return 0;
 }
 
 /**
- * @brief Initialize Physical Memory Structure (Device). Can be used to
- * simulate RAM or SWP device.
+ * @brief Initialize Physical Memory Structure (Device) and format the device
+ * to a new-clean device. Can be used to simulate RAM or SWP device.
  * @param mp NULL ptr
  * @param max_size maximum size of the phymem structure (bytes)
  * @param randomflg 1 if randomly accessed, 0 if sequentially

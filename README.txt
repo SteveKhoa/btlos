@@ -2,6 +2,21 @@ SCHEDULE
 ============
 The lastest news lie on top of this section.
 ---------
+To-do: (to 11:59PM, May 7)
+    Triet: Responsible for Physical Memory (memphy)
+    Khang: Reponsible for Memory Management (paging and stuff)
+    Khoa: Responsible for Virtual Memory (vm_area and stuff)
+    
+    Triet: Write testcases for Virtual Memory and Memory Management & 
+            Help Khang with Memory Management & 
+            Implement MEMPHY_dump
+    Khang: Focus on Memory Mangement methods (PAGING stuff), make sure that paging works well & 
+            write testcases for Physical Memory and Virtual Memory to fit what you needs.
+    Khoa: Write testcases for all memory-related operations & 
+            Check thoroughly you guys implementation &
+            try to finish all left-over memory stuff or perhaps extends some funcs.
+            
+    Note: Don't do directly on `main` branch, create a branch for yourself instead.
 --------- END OF SPRINT
 #
 #

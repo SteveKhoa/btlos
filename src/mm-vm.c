@@ -65,7 +65,7 @@ get_vma_by_num (struct mm_struct *mm, int vmaid)
 }
 
 /**
- * @brief Get memory region through Symbol table
+ * @brief Deferencing the Symbol Table to get the region.
  * @param mm The list of areas to get the rg from
  * @param rgid The name of symbol
  */
@@ -169,12 +169,12 @@ pgalloc (struct pcb_t *proc, uint32_t size, uint32_t reg_index)
     return __alloc (proc, 0, reg_index, size, &addr);
 }
 
-/*pgfree - PAGING-based free a region memory
- *@proc: Process executing the instruction
- *@size: allocated size
- *@reg_index: memory region ID (used to identify variable in symbole table)
+/**
+ * @brief Paging-based memory free. Adding the region associated with
+ * [reg_index] to free_rg_list
+ * @param proc the process requesting
+ * @param reg_index rgid
  */
-
 int
 pgfree_data (struct pcb_t *proc, uint32_t reg_index)
 {
@@ -301,6 +301,14 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
 }
 
 /*pgwrite - PAGING-based read a region memory */
+/**
+ * @brief Paging-based memory read.
+ * @param proc the process requesting the write
+ * @param data BYTE (char) to be written
+ * @param destination region id
+ * @param offset offset of Virtual Memory Area.
+ * @attention the core routine is pg_getval()
+ */
 int
 pgread (struct pcb_t *proc, // Process executing the instruction
         uint32_t source,    // Index of source register
@@ -352,6 +360,7 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
  * @param data BYTE (char) to be written
  * @param destination region id
  * @param offset offset of Virtual Memory Area.
+ * @attention the core routine is pg_getval()
  */
 int
 pgwrite (struct pcb_t *proc,   // Process executing the instruction
@@ -432,6 +441,11 @@ get_vm_area_node_at_brk (struct pcb_t *caller, int vmaid, int size,
  *@param: vmaend: vma end
  *
  */
+/**
+ * @brief Validate the the VM Area does not overlap with any other VM Area
+ * region.
+ * @note DEPRECATED - our project only has one VM Area.
+ */
 int
 validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
                           int vmaend)
@@ -507,6 +521,12 @@ find_victim_page (struct mm_struct *mm, int *retpgn)
  *@vmaid: ID vm area to alloc memory region
  *@size: allocated size
  *
+ */
+/**
+ * @brief Request a new region in VM Area using First-fit algorithm.
+ * @param caller the process requesting
+ * @param vmaid vm area id.
+ * @param size the size of
  */
 int
 get_free_vmrg_area (struct pcb_t *caller, int vmaid, int size,
