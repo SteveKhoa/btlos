@@ -1,7 +1,7 @@
 /**
  * @file mm.c
  * @category Implementation source code
- * @brief 
+ * @brief
  *      Implementation of Page-directory operations
  */
 
@@ -226,6 +226,24 @@ __swap_cp_page (struct memphy_struct *mpsrc, int srcfpn,
  *Initialize a empty Memory Management instance
  * @mm:     self mm
  * @caller: mm owner
+ */
+/**
+ * @brief Initialize Memory Management device. It does the following tasks:
+ *
+ *  1. Allocate the Virtual Memory Area (vma);
+ *  2. Allocate the Page directory (pgd);
+ *  3. Allocate Virtual Memory Region (rg) and add it to Free Region List
+ * (vm_free_rg_list) of (vma).
+ *
+ * @param mm the mm device.
+ * @param caller the process requesting the mm initialization.(DEPRECATED, not
+ * used). Encouraged to pass NULL into this parameter;
+ *
+ * @return 0 always succesful. [mm] attributes are fully initialized.
+ *
+ * @note [mm] must be malloc before passed into this function.
+ * @note (vma) is initially empty (vm_start = vm_end = sbrk = 0), it has only
+ * one free region and also empty (rg_start = rg_end = 0).
  */
 int
 init_mm (struct mm_struct *mm, struct pcb_t *caller)
