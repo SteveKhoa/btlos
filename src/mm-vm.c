@@ -22,18 +22,18 @@
  * @param rg_elmt The rg to be added
  */
 int
-enlist_vm_freerg_list (struct mm_struct *mm, struct vm_rg_struct rg_elmt)
+enlist_vm_freerg_list (struct mm_struct *mm, struct vm_rg_struct * rg_elmt)
 {
     struct vm_rg_struct *rg_node = mm->mmap->vm_freerg_list;
 
-    if (rg_elmt.rg_start >= rg_elmt.rg_end)
+    if (rg_elmt->rg_start >= rg_elmt->rg_end)
         return -1; // return -1 when the region is invalid
 
     if (rg_node != NULL)
-        rg_elmt.rg_next = rg_node;
+        rg_elmt->rg_next = rg_node;
 
     /* Enlist the new region */
-    mm->mmap->vm_freerg_list = &rg_elmt;
+    mm->mmap->vm_freerg_list = rg_elmt;
 
     return 0;
 }
@@ -106,7 +106,17 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     /* When get_free_vmrg_area FAILED to handle the region management,
     we increase limit to get space */
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
-    int inc_sz = PAGING_PAGE_ALIGNSZ (size);
+    // find gap between sbrk and vm_end
+    // if large enough, fit in without any additional work
+    int gap = cur_vma->vm_end - cur_vma->sbrk;
+    if (gap >= size)
+        {
+            cur_vma->sbrk += size;
+            return 0;
+        }
+    // otherwise, we need to fit in one page at a time
+    // achieved relatively easy, find the diff between size and gap
+    int inc_sz = PAGING_PAGE_ALIGNSZ (size - gap);
     // int inc_limit_ret
     int old_sbrk;
 
@@ -150,8 +160,8 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
 
     // int addr = currg->rg_start;
 
-    /*enlist the obsoleted memory region */
-    enlist_vm_freerg_list (caller->mm, *currg);
+    /* enlist the obsoleted memory region */
+    enlist_vm_freerg_list (caller->mm, currg);
 
     return 0;
 }
