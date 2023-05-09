@@ -106,6 +106,11 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     /* When get_free_vmrg_area FAILED to handle the region management,
     we increase limit to get space */
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
+    if (cur_vma == NULL)
+        {
+            printf ("Error: in mm-vm.c / __alloc() :\n");
+            printf ("Can not get current vma.\n");
+        }
     // find gap between sbrk and vm_end
     // if large enough, fit in without any additional work
     int gap = cur_vma->vm_end - cur_vma->sbrk;
@@ -187,7 +192,13 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
 
     // And its associated region is put back to free list
     /* enlist the obsoleted memory region */
-    enlist_vm_freerg_list (caller->mm, currg);
+    if (enlist_vm_freerg_list (caller->mm, currg) != 0)
+        {
+            printf ("Error: in mm-vm.c / enlist_vm_freerg_list() :\n");
+            printf (
+                "Can not enlist the current region into vm_freerg_list.\n");
+            return -1;
+        }
 
     /**
      * @note This method does NOT reset the values associated with this region
@@ -382,11 +393,20 @@ pg_getval (struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
 
     /* Get the page to MEMRAM, swap from MEMSWAP if needed */
     if (pg_getpage (mm, pgn, &fpn, caller) != 0)
-        return -1; /* invalid page access */
+        {
+            printf ("Error: in mm-vm.c / pg_getval() :\n");
+            printf ("pg_getpage() is not sucessful.\n");
+            return -1; /* invalid page access */
+        }
 
     int phyaddr = (fpn << PAGING_ADDR_FPN_LOBIT) + off;
 
-    MEMPHY_read (caller->mram, phyaddr, data);
+    if (MEMPHY_read (caller->mram, phyaddr, data) != 0)
+        {
+            printf ("Error: in mm-vm.c / pg_getval() :\n");
+            printf ("MEMPHY_read() error.\n");
+            return -1;
+        }
 
     return 0;
 }
@@ -406,11 +426,20 @@ pg_setval (struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
 
     /* Get the page to MEMRAM, swap from MEMSWAP if needed */
     if (pg_getpage (mm, pgn, &fpn, caller) != 0)
-        return -1; /* invalid page access */
+        {
+            printf ("Error: in mm-vm.c / pg_setval() :\n");
+            printf ("pg_getpage() is not sucessful.\n");
+            return -1; /* invalid page access */
+        }
 
     int phyaddr = (fpn << PAGING_ADDR_FPN_LOBIT) + off;
 
-    MEMPHY_write (caller->mram, phyaddr, value);
+    if (MEMPHY_write (caller->mram, phyaddr, value) != 0)
+        {
+            printf ("Error: in mm-vm.c / pg_setval() :\n");
+            printf ("MEMPHY_write() error.\n");
+            return -1;
+        }
 
     return 0;
 }
@@ -447,9 +476,9 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
             return -1;
         }
 
-    pg_getval (caller->mm, currg->rg_start + offset, data, caller);
+    return pg_getval (caller->mm, currg->rg_start + offset, data, caller);
 
-    return 0;
+    // return 0;
 }
 
 /*pgwrite - PAGING-based read a region memory */
@@ -471,6 +500,13 @@ pgread (struct pcb_t *proc, // Process executing the instruction
     int val = __read (proc, 0, source, offset, &data);
 
     // destination = (uint32_t)data; // ignore this
+    if (destination < 0 || destination >= PCB_REG_N)
+        {
+            printf ("Error: in mm-vm.c / pgread() :\n");
+            printf ("Process=%d does not own reg=%d.\n", proc->pid,
+                    destination);
+            return -1;
+        }
     proc->regs[destination] = data;
 #ifdef IODUMP
     printf ("read region=%d offset=%d value=%d, pid=%d\n", source, offset,
@@ -516,9 +552,11 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
             return -1;
         }
 
-    pg_setval (caller->mm, currg->rg_start + offset, value, caller);
+    // We MUST return pg_setval retval, not always 0, so that when
+    // pg_setval() failed, we know immediately.
+    return pg_setval (caller->mm, currg->rg_start + offset, value, caller);
 
-    return 0;
+    // return 0;
 }
 
 /**
@@ -731,6 +769,13 @@ get_free_vmrg_area (struct pcb_t *caller, int vmaid, int size,
     // get current virtual memory area
     // we only have 1 area regarding the scope of this assignment
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
+
+    if (cur_vma == NULL)
+        {
+            printf ("Error: in mm-vm.c / get_free_vmrg_area() :\n");
+            printf ("Can not get current vma.\n");
+            return -1;
+        }
 
     // rgit is an iterator through the list of free regions in an area
     struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
