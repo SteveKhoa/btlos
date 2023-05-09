@@ -158,7 +158,7 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
     if (currg == NULL || cur_vma == NULL
         || (currg->rg_start == currg->rg_end)) /* Invalid memory identify */
         {
-            printf("Error: in mm-vm.c / __free() :\n");
+            printf ("Error: in mm-vm.c / __free() :\n");
             printf ("Segmentation fault. Can not get region %d OR vma %d.\n",
                     rgid, vmaid);
             return -1;
@@ -166,9 +166,21 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
 
     // int addr = currg->rg_start;
 
+    // Reset the rgid, symbol [rgid] is now uninitialized.
+    caller->mm->symrgtbl[rgid].rg_start = -1;
+    caller->mm->symrgtbl[rgid].rg_end = -1;
+
+    // And its associated region is put back to free list
     /* enlist the obsoleted memory region */
     enlist_vm_freerg_list (caller->mm, currg);
 
+    /**
+     * @note This method does NOT reset the values associated with this region
+     * on Physical Memory. The values of frames associated with the pages of
+     * this region are now GARBAGE VALUES. Thus, Physical Memory Dump (if
+     * issued) will print them out regardless of they have been freed using
+     * this func.
+     */
     return 0;
 }
 
@@ -405,7 +417,7 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
     if (currg == NULL || cur_vma == NULL
         || (currg->rg_start == currg->rg_end)) /* Invalid memory identify */
         {
-            printf("Error: in mm-vm.c / __read() :\n");
+            printf ("Error: in mm-vm.c / __read() :\n");
             printf ("Segmentation fault. Can not get region %d OR vma %d.\n",
                     rgid, vmaid);
             return -1;
@@ -414,7 +426,7 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
     if (currg->rg_start + offset < currg->rg_start
         || currg->rg_start + offset > currg->rg_end)
         {
-            printf("Error: in mm-vm.c / __read() :\n");
+            printf ("Error: in mm-vm.c / __read() :\n");
             printf ("Segmentation fault. Accessing out-of-range region.\n");
             return -1;
         }
@@ -473,7 +485,7 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
     if (currg == NULL || cur_vma == NULL
         || (currg->rg_start == currg->rg_end)) /* Invalid memory identify */
         {
-            printf("Error: in mm-vm.c / __write() :\n");
+            printf ("Error: in mm-vm.c / __write() :\n");
             printf ("Segmentation fault. Can not get region %d OR vma %d.\n",
                     rgid, vmaid);
             return -1;
@@ -482,7 +494,7 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
     if (currg->rg_start + offset < currg->rg_start
         || currg->rg_start + offset > currg->rg_end)
         {
-            printf("Error: in mm-vm.c / __write() :\n");
+            printf ("Error: in mm-vm.c / __write() :\n");
             printf ("Segmentation fault. Accessing out-of-range region.\n");
             return -1;
         }
