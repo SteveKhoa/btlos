@@ -113,7 +113,6 @@ get_mlq_proc (void)
      Use lock to protect the queue.
      @return the process from ready_queue
      */
-    pthread_mutex_lock (&queue_lock);
     struct pcb_t *proc = NULL;
 
     /* If all queues are empty, return NULL */
@@ -157,6 +156,7 @@ get_mlq_proc (void)
                         }
                     else // just get the first process from the queue
                         {
+                            pthread_mutex_lock (&queue_lock);
                             proc = dequeue (priority_queue);
                             // because a process will exec in 1 time slice,
                             // increment "slots" counter by 1

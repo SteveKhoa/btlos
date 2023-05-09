@@ -173,8 +173,8 @@ ld_routine (void *args)
             proc->mswp = mswp;
             proc->active_mswp = active_mswp;
 #endif
-            printf ("\tLoaded a process at %s, PID: %d PRIO: %ld\n",
-                    ld_processes.path[i], proc->pid, ld_processes.prio[i]);
+            printf ("\tLoaded a process at %s, PID: %d PRIO: %ld, at time %llu\n",
+                    ld_processes.path[i], proc->pid, ld_processes.prio[i], current_time());
             add_proc (proc);
             free (ld_processes.path[i]);
             i++;
