@@ -1,7 +1,7 @@
 /**
  * @file mm.c
  * @category Implementation source code
- * @brief 
+ * @brief
  *      Implementation of Page-directory operations
  */
 
@@ -97,24 +97,20 @@ pte_set_fpn (uint32_t *pte, int fpn)
  * @param addr: start address which is aligned to pagesz
  * @param pgnum: number of pages need mapping
  * @param frames: list of mapped frames
- * @param ret_rg: return mapped region, the mapped fp (no guarantee all pages mapped)
+ * @param ret_rg: return mapped region, the mapped fp (no guarantee all pages
+ * mapped)
  */
 int
-vmap_page_range (
-    struct pcb_t *caller,
-    int addr,
-    int pgnum,
-    struct framephy_struct *frames,
-    struct vm_rg_struct *ret_rg)
+vmap_page_range (struct pcb_t *caller, int addr, int pgnum,
+                 struct framephy_struct *frames, struct vm_rg_struct *ret_rg)
 {
     // uint32_t * pte = malloc(sizeof(uint32_t));
     struct framephy_struct *fpit = malloc (sizeof (struct framephy_struct));
     // int  fpn;
     int pgit = 0;
 
-//    ret_rg->rg_end = ret_rg->rg_start
-//        = addr; // at least the very first space is usable
-
+    //    ret_rg->rg_end = ret_rg->rg_start
+    //        = addr; // at least the very first space is usable
 
     /* TODO map range of frame to address space
      *      [addr to addr + pgnum * PAGING_PAGESZ
@@ -122,8 +118,9 @@ vmap_page_range (
      */
     int pgn;
     fpit = frames;
-    while(fpit){
-        // get page number from addr
+    while (fpit)
+        {
+            // get page number from addr
             pgn = PAGING_PGN (addr);
             pgit = pgn;
             PAGING_PTE_SET_PRESENT (caller->mm->pgd[pgn]);
@@ -134,7 +131,6 @@ vmap_page_range (
              * Enqueue new usage page */
             enlist_pgn_node (&caller->mm->lru_pgn, pgn + pgit);
         }
-
 
     return 0;
 }
@@ -263,9 +259,10 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
             return -1;
         }
 
-    /* If there is enough memory available but it is split between RAM and swap,
-     * the code performs swapping operations to bring all the required data into RAM.
-     * This ensures that the entire data set is resident in RAM rather than being partially stored in swap.
+    /* If there is enough memory available but it is split between RAM and
+     * swap, the code performs swapping operations to bring all the required
+     * data into RAM. This ensures that the entire data set is resident in RAM
+     * rather than being partially stored in swap.
      * */
     vmap_page_range (caller, mapstart, incpgnum, frm_lst, ret_rg);
 
@@ -324,6 +321,15 @@ init_mm (struct mm_struct *mm, struct pcb_t *caller)
 
     mm->mmap = vma;
 
+    // Initialize the symbol region tables
+    // Avoid garbage values
+    for (int i = 0; i < PAGING_MAX_SYMTBL_SZ; ++i)
+        {
+            mm->symrgtbl[i].rg_start = -1;
+            mm->symrgtbl[i].rg_end = -1;
+            mm->symrgtbl[i].rg_next = NULL;
+        }
+
     return 0;
 }
 
@@ -357,28 +363,32 @@ enlist_vm_rg_node (struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
 /**
  * @brief: pgn to the list but if pgn value is already in the list
  * then move the node to the top instead
-*/
+ */
 
-int enlist_pgn_node(struct pgn_t **plist, int pgn)
+int
+enlist_pgn_node (struct pgn_t **plist, int pgn)
 {
     struct pgn_t *pnode = *plist;
     struct pgn_t *prev = NULL;
-    //Find pgn in the list
-    while (pnode != NULL) {
-        if (pnode->pgn == pgn) {
-            if (prev != NULL) {
-                //move the node to the front
-                prev->pg_next = pnode->pg_next;
-                pnode->pg_next = *plist;
-                *plist = pnode;
-            }
-            return 0;
+    // Find pgn in the list
+    while (pnode != NULL)
+        {
+            if (pnode->pgn == pgn)
+                {
+                    if (prev != NULL)
+                        {
+                            // move the node to the front
+                            prev->pg_next = pnode->pg_next;
+                            pnode->pg_next = *plist;
+                            *plist = pnode;
+                        }
+                    return 0;
+                }
+            prev = pnode;
+            pnode = pnode->pg_next;
         }
-        prev = pnode;
-        pnode = pnode->pg_next;
-    }
-    //pgn not found, create and add the new node to the front of the list
-    pnode = malloc(sizeof(struct pgn_t));
+    // pgn not found, create and add the new node to the front of the list
+    pnode = malloc (sizeof (struct pgn_t));
     pnode->pgn = pgn;
     pnode->pg_next = *plist;
     *plist = pnode;

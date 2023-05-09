@@ -22,7 +22,7 @@
  * @param rg_elmt The rg to be added
  */
 int
-enlist_vm_freerg_list (struct mm_struct *mm, struct vm_rg_struct * rg_elmt)
+enlist_vm_freerg_list (struct mm_struct *mm, struct vm_rg_struct *rg_elmt)
 {
     struct vm_rg_struct *rg_node = mm->mmap->vm_freerg_list;
 
@@ -155,8 +155,14 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
 
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
 
-    if (currg == NULL || cur_vma == NULL) /* Invalid memory identify */
-        return -1;
+    if (currg == NULL || cur_vma == NULL
+        || (currg->rg_start == currg->rg_end)) /* Invalid memory identify */
+        {
+            printf("Error: in mm-vm.c / __free() :\n");
+            printf ("Segmentation fault. Can not get region %d OR vma %d.\n",
+                    rgid, vmaid);
+            return -1;
+        }
 
     // int addr = currg->rg_start;
 
@@ -396,8 +402,22 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
 
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
 
-    if (currg == NULL || cur_vma == NULL) /* Invalid memory identify */
-        return -1;
+    if (currg == NULL || cur_vma == NULL
+        || (currg->rg_start == currg->rg_end)) /* Invalid memory identify */
+        {
+            printf("Error: in mm-vm.c / __read() :\n");
+            printf ("Segmentation fault. Can not get region %d OR vma %d.\n",
+                    rgid, vmaid);
+            return -1;
+        }
+
+    if (currg->rg_start + offset < currg->rg_start
+        || currg->rg_start + offset > currg->rg_end)
+        {
+            printf("Error: in mm-vm.c / __read() :\n");
+            printf ("Segmentation fault. Accessing out-of-range region.\n");
+            return -1;
+        }
 
     pg_getval (caller->mm, currg->rg_start + offset, data, caller);
 
@@ -432,6 +452,9 @@ pgread (struct pcb_t *proc, // Process executing the instruction
     MEMPHY_dump (proc->mram);
 #endif
 
+    // Dump register after READ
+    dump_register (proc);
+
     return val;
 }
 
@@ -447,8 +470,22 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
 
     struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
 
-    if (currg == NULL || cur_vma == NULL) /* Invalid memory identify */
-        return -1;
+    if (currg == NULL || cur_vma == NULL
+        || (currg->rg_start == currg->rg_end)) /* Invalid memory identify */
+        {
+            printf("Error: in mm-vm.c / __write() :\n");
+            printf ("Segmentation fault. Can not get region %d OR vma %d.\n",
+                    rgid, vmaid);
+            return -1;
+        }
+
+    if (currg->rg_start + offset < currg->rg_start
+        || currg->rg_start + offset > currg->rg_end)
+        {
+            printf("Error: in mm-vm.c / __write() :\n");
+            printf ("Segmentation fault. Accessing out-of-range region.\n");
+            return -1;
+        }
 
     pg_setval (caller->mm, currg->rg_start + offset, value, caller);
 
@@ -618,27 +655,27 @@ find_victim_page (struct mm_struct *mm, int *retpgn)
 {
     struct pgn_t *pg = mm->lru_pgn;
     /* TODO: Implement the theorical mechanism to find the victim page */
-    //Empty list
-    if(pg == NULL)
-    {
-        return -1;
-    }
-    //list only have 1 page
-    if(pg->pg_next == NULL)
-    {
-        retpgn = pg->pgn;
-        free(pg);
-        pg = NULL;
-        return 0;
-    }
+    // Empty list
+    if (pg == NULL)
+        {
+            return -1;
+        }
+    // list only have 1 page
+    if (pg->pg_next == NULL)
+        {
+            retpgn = pg->pgn;
+            free (pg);
+            pg = NULL;
+            return 0;
+        }
     /**
      * find the second-last entry in the list and assign the value
      * of the last node to retpgn
-    */
-    while(pg->pg_next->pg_next != NULL)
-    {
-        pg = pg->pg_next;
-    }
+     */
+    while (pg->pg_next->pg_next != NULL)
+        {
+            pg = pg->pg_next;
+        }
     retpgn = pg->pg_next->pgn;
 
     free (pg->pg_next);

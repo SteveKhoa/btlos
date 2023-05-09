@@ -10,6 +10,7 @@
 #include "cpu.h"
 #include "mem.h"
 #include "mm.h"
+#include <stdlib.h>
 
 /**
  *      Always return 0
@@ -113,7 +114,8 @@ write (struct pcb_t *proc,   // Process executing the instruction
  *
  * @return
  *      0 if successful,
- *      1 if unsuccessful or no more instructions
+ *      1 if no more instructions,
+ *      ABORT if abnormal error.
  */
 int
 run (struct pcb_t *proc)
@@ -163,6 +165,16 @@ run (struct pcb_t *proc)
             break;
         default:
             stat = 1;
+        }
+
+    if (stat == -1) // Handle instruction fault.
+                    // If an instruction does not execute
+                    // as expected, the program aborts
+
+        {
+            printf ("ABORT: in cpu.c, run(). Instruction did not execute as "
+                    "expected.\n");
+            exit(0);
         }
     return stat;
 }
