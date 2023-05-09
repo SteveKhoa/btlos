@@ -108,9 +108,17 @@ test-memphy: $(EXT)/munit.c $(EXT)/munit.h
 
 	@./test/memphy
 
+test-procmem:
+	@$(MAKE) -o test/procmem \
+	test/procmem.c \
+	src/common.c src/mm.c src/mm-memphy.c src/mm-vm.c src/cpu.c \
+	-Iinclude
+
+	@./test/procmem
+
 clean-test:
 	rm -rf 	test/queue test/sample test/sched \
-		  	test/memphy
+		  	test/memphy test/procmem
 	rm -rf test/*.d
 	
 
@@ -127,5 +135,4 @@ clean-test:
 
 _ : _.c $(deps)
 	@$(MAKE) $(LFLAGS) $^ -o _
-	@./_
 	@rm -rf _.d

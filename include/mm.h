@@ -3,7 +3,7 @@
  * @category Interface for memory management
  * @brief Declarations and Macro definitions of all routines related to memory
  * mapping.
-*/
+ */
 #ifndef MM_H
 
 #include "bitops.h"
@@ -77,7 +77,13 @@
 #define PAGING_SWP(pte) ((pte & PAGING_SWP_MASK) >> PAGING_SWPFPN_OFFSET)
 
 /* Value operators */
+
+// Set bit-string to [mask]. For example, v=0010, mask=1000,SETBIT produces
+// retval=1010
 #define SETBIT(v, mask) (v = v | mask)
+
+// Clear [mask] from bit-string. For example, v=1010, mask=1000, CLRBIT
+// produces retval=0010
 #define CLRBIT(v, mask) (v = v & ~mask)
 
 #define SETVAL(v, value, mask, offst)                                         \
@@ -108,14 +114,17 @@
 #define OVERLAP(x1, x2, y1, y2) (((y2 - x1) * (x2 - y1) >= 0) ? 1 : 0)
 
 /* VM region prototypes */
+
 struct vm_rg_struct *init_vm_rg (int rg_start, int rg_endi);
 int enlist_vm_rg_node (struct vm_rg_struct **rglist,
                        struct vm_rg_struct *rgnode);
 int enlist_pgn_node (struct pgn_t **pgnlist, int pgn);
+int enlist_framephy (struct mm_struct *mm, struct framephy_struct **frm_lst,
+                     int fpn);
 int vmap_page_range (struct pcb_t *caller, int addr, int pgnum,
                      struct framephy_struct *frames,
                      struct vm_rg_struct *ret_rg);
-int vm_map_ram (struct pcb_t *caller, int astart, int send, int mapstart,
+int vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
                 int incpgnum, struct vm_rg_struct *ret_rg);
 int alloc_pages_range (struct pcb_t *caller, int incpgnum,
                        struct framephy_struct **frm_lst);
@@ -150,7 +159,7 @@ int pgwrite (struct pcb_t *proc,   // Process executing the instruction
              BYTE data,            // Data to be wrttien into memory
              uint32_t destination, // Index of destination register
              uint32_t offset);
-             
+
 /* Local VM prototypes */
 
 struct vm_rg_struct *get_symrg_byid (struct mm_struct *mm, int rgid);

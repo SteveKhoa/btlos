@@ -94,7 +94,7 @@ struct framephy_struct
     int fpn;
     struct framephy_struct *fp_next;
 
-    /* Resereed for tracking allocated framed */
+    /* Reserved for tracking allocated framed */
     struct mm_struct *owner;
 };
 

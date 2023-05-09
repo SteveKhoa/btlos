@@ -6,7 +6,7 @@
  *      A sample of using Munit unit-test framework
  */
 
-#include "munit.h"
+#include "../ext/munit.h"
 #include <stdio.h>
 #include <stdlib.h>
 

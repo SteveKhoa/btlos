@@ -1,10 +1,15 @@
 .DS_Store
 _.c
 /obj
-./os
+os
 .idea/
 test/*.d
 src/*.d
 NOTES.txt
 *.dSYM
 /.vscode
+/test/*.d
+/test/sched
+/test/memphy
+/test/queue
+/test/sample
