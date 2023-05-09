@@ -190,6 +190,7 @@ ld_routine (void *args)
     detach_event (timer_id);
     //Not called from a thread
     //pthread_exit (NULL);
+    return NULL;
 }
 
 /* Subroutine reading the configuration and */
