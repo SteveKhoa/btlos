@@ -173,6 +173,7 @@ run (struct pcb_t *proc)
                     // as expected, the program aborts
 
         {
+            printf("\n\n");
             printf ("ABORT: in cpu.c, run(). Instruction did not execute as "
                     "expected.\n");
             exit(0);
