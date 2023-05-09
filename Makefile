@@ -112,9 +112,11 @@ test-procmem:
 	@$(MAKE) -o test/procmem \
 	test/procmem.c \
 	src/common.c src/mm.c src/mm-memphy.c src/mm-vm.c src/cpu.c \
+	src/timer.c src/sched.c src/queue.c src/loader.c \
 	-Iinclude
 
-	@./test/procmem
+	@echo Compiled done.
+	@echo Usage ./test/procmem [configure file]
 
 clean-test:
 	rm -rf 	test/queue test/sample test/sched \
