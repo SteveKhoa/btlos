@@ -597,13 +597,29 @@ pgwrite (struct pcb_t *proc,   // Process executing the instruction
 #ifdef IODUMP
     printf ("write val=%d ==> region=%d,offset=%d,pid=%d\n", data, destination,
             offset, proc->pid),
+    printf("Before write:\n");
 #ifdef PAGETBL_DUMP
         print_pgtbl (proc, 0, -1); // print max TBL
 #endif
     MEMPHY_dump (proc->mram);
 #endif
 
-    return __write (proc, 0, destination, offset, data);
+    int stat = __write (proc, 0, destination, offset, data);
+
+    if (stat != 0)
+    {
+        return stat;
+    }
+
+#ifdef IODUMP
+    printf("After write:\n");
+#ifdef PAGETBL_DUMP
+        print_pgtbl (proc, 0, -1); // print max TBL
+#endif
+    MEMPHY_dump (proc->mram);
+#endif
+
+    return stat;
 }
 
 /** collect all memphy of pcb
