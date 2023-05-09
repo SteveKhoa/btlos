@@ -663,7 +663,7 @@ find_victim_page (struct mm_struct *mm, int *retpgn)
     // list only have 1 page
     if (pg->pg_next == NULL)
         {
-            retpgn = pg->pgn;
+            *retpgn = pg->pgn;
             free (pg);
             pg = NULL;
             return 0;
@@ -676,7 +676,7 @@ find_victim_page (struct mm_struct *mm, int *retpgn)
         {
             pg = pg->pg_next;
         }
-    retpgn = pg->pg_next->pgn;
+    *retpgn = pg->pg_next->pgn;
 
     free (pg->pg_next);
     pg->pg_next = NULL;

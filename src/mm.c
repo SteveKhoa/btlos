@@ -168,6 +168,8 @@ enlist_framephy (struct mm_struct *mm, struct framephy_struct **frm_lst,
             p->fp_next->fp_next = NULL;
             p->fp_next->owner = mm;
         }
+
+    return 0;
 }
 
 /**
