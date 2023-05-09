@@ -111,7 +111,17 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     int gap = cur_vma->vm_end - cur_vma->sbrk;
     if (gap >= size)
         {
+            int old_sbrk;
+
+            old_sbrk = cur_vma->sbrk;
             cur_vma->sbrk += size;
+
+            /*Successfully increase limit */
+            caller->mm->symrgtbl[rgid].rg_start = old_sbrk;
+            caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
+
+            printf ("alloc region=%d, size=%d, pid=%d\n", rgid, size,
+                    caller->pid);
             return 0;
         }
     // otherwise, we need to fit in one page at a time
@@ -123,7 +133,12 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     old_sbrk = cur_vma->sbrk;
 
     /* INCREASE THE LIMIT */
-    inc_vma_limit (caller, vmaid, inc_sz);
+    if (inc_vma_limit (caller, vmaid, inc_sz) != 0)
+        {
+            printf ("Error: in mm-vm.c / __alloc() :\n");
+            printf ("inc_vma_limit() can not increase the limit.\n");
+            return -1;
+        }
 
     // move sbrk up:
     cur_vma->sbrk += size;
@@ -133,7 +148,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
 
     *alloc_addr = old_sbrk;
-    printf("alloc region=%d, size=%d, pid=%d\n", rgid, size, caller->pid);
+    printf ("alloc region=%d, size=%d, pid=%d\n", rgid, size, caller->pid);
     return 0;
 }
 
@@ -181,7 +196,7 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
      * issued) will print them out regardless of they have been freed using
      * this func.
      */
-    printf("free region=%d, pid=%d\n", rgid, caller->pid);
+    printf ("free region=%d, pid=%d\n", rgid, caller->pid);
     return 0;
 }
 
@@ -458,7 +473,8 @@ pgread (struct pcb_t *proc, // Process executing the instruction
     // destination = (uint32_t)data; // ignore this
     proc->regs[destination] = data;
 #ifdef IODUMP
-    printf ("read region=%d offset=%d value=%d\n", source, offset, data);
+    printf ("read region=%d offset=%d value=%d, pid=%d\n", source, offset,
+            data, proc->pid);
 #ifdef PAGETBL_DUMP
     print_pgtbl (proc, 0, -1); // print max TBL
 #endif
@@ -524,10 +540,10 @@ pgwrite (struct pcb_t *proc,   // Process executing the instruction
          uint32_t offset)
 {
 #ifdef IODUMP
-    printf ("write val=%d ==> region=%d,offset=%d\n", data, destination,
-            offset);
+    printf ("write val=%d ==> region=%d,offset=%d,pid=%d\n", data, destination,
+            offset, proc->pid),
 #ifdef PAGETBL_DUMP
-    print_pgtbl (proc, 0, -1); // print max TBL
+        print_pgtbl (proc, 0, -1); // print max TBL
 #endif
     MEMPHY_dump (proc->mram);
 #endif
