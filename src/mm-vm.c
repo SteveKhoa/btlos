@@ -75,6 +75,9 @@ get_symrg_byid (struct mm_struct *mm, int rgid)
     if (rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
         return NULL;
 
+    if (mm->symrgtbl[rgid].rg_start == mm->symrgtbl[rgid].rg_end)
+        return NULL;
+
     return &mm->symrgtbl[rgid];
 }
 
@@ -99,6 +102,9 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
             caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
 
             *alloc_addr = rgnode.rg_start;
+
+            printf ("alloc region=%d, size=%d, pid=%d\n", rgid, size,
+                    caller->pid);
 
             return 0;
         }
@@ -186,15 +192,26 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
 
     // int addr = currg->rg_start;
 
+    // Clone the free region to add into free list
+    // Because, symbol table must be reset (the region must be uninitialized),
+    // but enlist_vm_freerg_list requires passing the pointer.
+    //
+    // We work-around by cloning an independent instance, and push it into free
+    // list. Instead of passing the pointer as reference to Symbol Table.
+    struct vm_rg_struct *free_rg = malloc (sizeof (struct vm_rg_struct));
+    free_rg->rg_start = currg->rg_start;
+    free_rg->rg_end = currg->rg_end;
+    free_rg->rg_next = currg->rg_next;
+
     // Reset the rgid, symbol [rgid] is now uninitialized.
     caller->mm->symrgtbl[rgid].rg_start = -1;
     caller->mm->symrgtbl[rgid].rg_end = -1;
 
     // And its associated region is put back to free list
     /* enlist the obsoleted memory region */
-    if (enlist_vm_freerg_list (caller->mm, currg) != 0)
+    if (enlist_vm_freerg_list (caller->mm, free_rg) != 0)
         {
-            printf ("Error: in mm-vm.c / enlist_vm_freerg_list() :\n");
+            printf ("Error: in mm-vm.c / __free() :\n");
             printf (
                 "Can not enlist the current region into vm_freerg_list.\n");
             return -1;
