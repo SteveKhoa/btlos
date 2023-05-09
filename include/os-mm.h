@@ -10,6 +10,7 @@
 #define MM_PAGING
 #define PAGING_MAX_MMSWP 4 /* max number of supported swapped space */
 #define PAGING_MAX_SYMTBL_SZ 30
+#define PCB_REG_N 10 /* Number of registers a process has */
 
 typedef char BYTE;
 typedef unsigned int uint32_t;
@@ -83,7 +84,7 @@ struct mm_struct
     struct vm_rg_struct symrgtbl[PAGING_MAX_SYMTBL_SZ];
 
     /* list of recently used pages, more recent pages are on the top*/
-    struct pgn_t *lru_pgn; 
+    struct pgn_t *lru_pgn;
 };
 
 /**
