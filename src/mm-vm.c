@@ -133,7 +133,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
 
     *alloc_addr = old_sbrk;
-
+    printf("alloc region=%d, size=%d, pid=%d\n", rgid, size, caller->pid);
     return 0;
 }
 
@@ -181,6 +181,7 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
      * issued) will print them out regardless of they have been freed using
      * this func.
      */
+    printf("free region=%d, pid=%d\n", rgid, caller->pid);
     return 0;
 }
 
