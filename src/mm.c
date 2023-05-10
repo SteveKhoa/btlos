@@ -104,10 +104,14 @@ int
 vmap_page_range (struct pcb_t *caller, int addr, int pgnum,
                  struct framephy_struct *frames, struct vm_rg_struct *ret_rg)
 {
+    // @note NK : now we don't need [frames] and [ret_rg]
+    // @note NK : what we really need in this function is to make all the pages
+    // belonging to this func available (or "present")
+
     // uint32_t * pte = malloc(sizeof(uint32_t));
-    struct framephy_struct *fpit = malloc (sizeof (struct framephy_struct));
+    // struct framephy_struct *fpit = malloc (sizeof (struct framephy_struct));
     // int  fpn;
-    int pgit = 0;
+    // int pgit = 0;
 
     //    ret_rg->rg_end = ret_rg->rg_start
     //        = addr; // at least the very first space is usable
@@ -116,20 +120,49 @@ vmap_page_range (struct pcb_t *caller, int addr, int pgnum,
      *      [addr to addr + pgnum * PAGING_PAGESZ
      *      in page table caller->mm->pgd[]
      */
-    int pgn;
-    fpit = frames;
-    while (fpit)
+
+    // @note NK : if [pgnum] is zero, the number of frames needed for this func
+    // is not sufficient. Therefore, we must perform a pg_getpage() (which uses
+    // swapping internally) to get the fpn (associated with pgn) we need.
+
+    // @note NK : deprecate this part, i rewrite a new one.
+    // int pgn;
+    // fpit = frames;
+    // while (fpit)
+    //     {
+    //         // get page number from addr
+    //         pgn = PAGING_PGN (addr);
+    //         pgit = pgn;
+    //         PAGING_PTE_SET_PRESENT (caller->mm->pgd[pgn]);
+    //         pte_set_fpn (&caller->mm->pgd[pgn], fpit->fpn);
+    //         fpit = fpit->fp_next;
+    //         addr += PAGING_PAGESZ;
+    //         /* Tracking for later page replacement activities (if needed)
+    //          * Enqueue new usage page */
+    //         enlist_pgn_node (&caller->mm->lru_pgn, pgn + pgit);
+    //     }
+
+    // @note NK : this is my new implementation:
+    for (int i = 0; i < pgnum; ++i) // Try to get [pgnum] frames for all pgn
         {
-            // get page number from addr
-            pgn = PAGING_PGN (addr);
-            pgit = pgn;
-            PAGING_PTE_SET_PRESENT (caller->mm->pgd[pgn]);
-            pte_set_fpn (&caller->mm->pgd[pgn], fpit->fpn);
-            fpit = fpit->fp_next;
-            addr += PAGING_PAGESZ;
-            /* Tracking for later page replacement activities (if needed)
-             * Enqueue new usage page */
-            enlist_pgn_node (&caller->mm->lru_pgn, pgn + pgit);
+            int pgn;
+            int fpn;
+
+            pgn = PAGING_PGN (addr); // get the page
+
+            if (pg_getpage (caller->mm, pgn, &fpn, caller) != 0)
+                {
+                    printf ("Error: in mm.c / vmap_page_range() :\n");
+                    printf ("pg_getpage() is not sucessful.\n");
+                    return -1;
+                } // Try to get a frame for [pgn]
+
+            addr += PAGING_PAGESZ; // go to the beginning of nextpage
+
+            /* Tracking for later page replacement activities */
+            // enlist_pgn_node (&caller->mm->lru_pgn, pgn);
+            // @note NK : no need to enlist this pgn, because pg_getpage()
+            // already did that for us
         }
 
     return 0;
@@ -178,15 +211,19 @@ enlist_framephy (struct mm_struct *mm, struct framephy_struct **frm_lst,
  * @param req_pgnum requested number of pages (also number of frames requested)
  * @param frm_lst store the new free frames list. (frm_lst should be empty
  * before passed into)
+ *
+ * @note If not enough frames, [req_pgnum] will be the number of remaining
+ * pages.
+ * @attention DEPRECATED
  */
 int
-alloc_pages_range (struct pcb_t *caller, int req_pgnum,
+alloc_pages_range (struct pcb_t *caller, int *req_pgnum,
                    struct framephy_struct **frm_lst)
 {
     int pgit, fpn;
     // struct framephy_struct *newfp_str;
 
-    for (pgit = 0; pgit < req_pgnum; pgit++)
+    for (pgit = 0; pgit < *req_pgnum; pgit++)
         {
             if (MEMPHY_get_freefp (caller->mram, &fpn) == 0)
                 {
@@ -196,27 +233,37 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
             else
                 { // ERROR CODE of obtaining somes but not enough frames.
 
+                    /* DEPRECATE THIS METHOD: */
                     // If not enough frames, we give back all frames to MEMPHY
                     // and issue error code (-1)
 
-                    for (struct framephy_struct *p = *frm_lst; p != NULL;
-                         p = p->fp_next)
-                        {
-                            int id = p->fpn;
-                            MEMPHY_put_freefp (caller->mram, id);
-                        }
+                    // for (struct framephy_struct *p = *frm_lst; p != NULL;
+                    //      p = p->fp_next)
+                    //     {
+                    //         int id = p->fpn;
+                    //         MEMPHY_put_freefp (caller->mram, id);
+                    //     }
 
-                    // Dealloc resources of frm_lst
-                    struct framephy_struct *p = *frm_lst;
-                    while (p != NULL)
-                        {
-                            struct framephy_struct *pnext = p->fp_next;
-                            free (p);
-                            p = pnext;
-                        }
+                    // // Dealloc resources of frm_lst
+                    // struct framephy_struct *p = *frm_lst;
+                    // while (p != NULL)
+                    //     {
+                    //         struct framephy_struct *pnext = p->fp_next;
+                    //         free (p);
+                    //         p = pnext;
+                    //     }
 
-                    *frm_lst = NULL;
-                    return -1;
+                    // *frm_lst = NULL;
+                    // return -1;
+
+                    /* NEW METHOD: Try to utilize swap space to get new free
+                     * frames */
+                    // However, this is not the job of this func
+                    // so, req_pgnum will be the number of remaining pages.
+                    // This job will be done in vmap_page_range()
+
+                    *req_pgnum = *req_pgnum - pgit; // return req_pgnum
+                    return 0;
                 }
         }
 
@@ -247,7 +294,9 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
      *duplicate control mechanism, keep it simple
      */
 
-    ret_alloc = alloc_pages_range (caller, incpgnum, &frm_lst);
+    // ret_alloc = alloc_pages_range (caller, incpgnum, &frm_lst);
+    // @note NK : we don't need this because we have pg_getpg().
+    ret_alloc = 0;
 
     if (ret_alloc < 0 && ret_alloc != -3000)
         return -1;
@@ -266,9 +315,10 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
      * data into RAM. This ensures that the entire data set is resident in RAM
      * rather than being partially stored in swap.
      * */
-    vmap_page_range (caller, mapstart, incpgnum, frm_lst, ret_rg);
+    return vmap_page_range (caller, mapstart, incpgnum, frm_lst, ret_rg);
+    // @note NK: vmap_page_range() uses pg_getpage().
 
-    return 0;
+    // return 0;
 }
 
 /**
