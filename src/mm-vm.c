@@ -278,8 +278,8 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
             // int vicfpn;
             // uint32_t vicpte;
 
-            int tgtfpn
-                = PAGING_SWP (pte); // the target frame storing our variable
+            // int tgtfpn
+            //     = PAGING_SWP (pte); // the target frame storing our variable
 
             /* TODO: Play with your paging theory here */
 
@@ -386,9 +386,10 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
             /* Update its online status of the target page */
             // pte_set_fpn() & mm->pgd[pgn];
             // pte_set_fpn (&pte, tgtfpn);
-
-            enlist_pgn_node (&caller->mm->lru_pgn, pgn);
         }
+
+    /* Add to LRU for page replacement algorithm by @Triet */
+    enlist_pgn_node (&caller->mm->lru_pgn, pgn);
 
     *fpn = PAGING_FPN (pte);
 
@@ -744,7 +745,11 @@ inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
     if (vm_map_ram (caller, area->rg_start, area->rg_end, old_end, incnumpage,
                     newrg)
         < 0)
-        return -1; /* Map the memory to MEMRAM */
+        {
+            printf ("Error: in mm.c / inc_vma_limit() :\n");
+            printf("vm_map_ram() not successful. Perhaps not enough frames.\n");
+            return -1; /* Map the memory to MEMRAM */
+        }
 
     return 0;
 }
