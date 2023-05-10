@@ -126,7 +126,7 @@ int vmap_page_range (struct pcb_t *caller, int addr, int pgnum,
                      struct vm_rg_struct *ret_rg);
 int vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
                 int incpgnum, struct vm_rg_struct *ret_rg);
-int alloc_pages_range (struct pcb_t *caller, int incpgnum,
+int alloc_pages_range (struct pcb_t *caller, int *incpgnum,
                        struct framephy_struct **frm_lst);
 int __swap_cp_page (struct memphy_struct *mpsrc, int srcfpn,
                     struct memphy_struct *mpdst, int dstfpn);
@@ -159,6 +159,10 @@ int pgwrite (struct pcb_t *proc,   // Process executing the instruction
              BYTE data,            // Data to be wrttien into memory
              uint32_t destination, // Index of destination register
              uint32_t offset);
+
+/* VM routines */
+
+int pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller);
 
 /* Local VM prototypes */
 
