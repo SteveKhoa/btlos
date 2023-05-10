@@ -381,6 +381,10 @@ init_mm (struct mm_struct *mm, struct pcb_t *caller)
             mm->symrgtbl[i].rg_end = -1;
             mm->symrgtbl[i].rg_next = NULL;
         }
+    for (int i = 0; i < PAGING_MAX_PGN; ++i)
+        {
+            mm->pgd[i] = 0;
+        }
 
     return 0;
 }
