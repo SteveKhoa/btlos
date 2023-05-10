@@ -535,12 +535,12 @@ pgread (struct pcb_t *proc, // Process executing the instruction
     //                 destination);
     //         return -1;
     //     }
-    
-    if (pgwrite(proc, data, destination, 0) != 0)
-    {
-        printf ("Error: in mm-vm.c / pgread() :\n");
-        printf("Storing the read value failed.\n");
-    }
+    /* Deprecated */
+//    if (pgwrite(proc, data, destination, 0) != 0)
+//    {
+//        printf ("Error: in mm-vm.c / pgread() :\n");
+//        printf("Storing the read value failed.\n");
+//    }
     // proc->regs[destination] = data;
 #ifdef IODUMP
     printf ("read region=%d offset=%d value=%d, pid=%d\n", source, offset,

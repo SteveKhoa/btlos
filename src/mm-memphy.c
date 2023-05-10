@@ -144,7 +144,7 @@ MEMPHY_write (struct memphy_struct *mp, int addr, BYTE data)
     if (addr < 0 || addr >= mp->maxsz)
         return -1;
 
-    if (mp->rdmflg == 1)
+    if (mp->rdmflg)
         {
             if (addr < 0 || addr >= mp->maxsz)
                 return -1;
