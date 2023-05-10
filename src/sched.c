@@ -94,7 +94,7 @@ init_scheduler (void)
 void
 finish_scheduler (void)
 {
-    pthread_mutex_destroy(&queue_lock);
+    pthread_mutex_destroy (&queue_lock);
 }
 
 #ifdef MLQ_SCHED
@@ -135,8 +135,11 @@ get_mlq_proc (void)
             // If all queues have run out of slots,
             // we reset their slots and are back
             // to the highest priority queue.
-            if (num_queues_out_slots == MAX_PRIO)
-                reset_slots ();
+
+            // @note NK : DERPRECATE THIS
+            // if (num_queues_out_slots == MAX_PRIO)
+            //     reset_slots ();
+
             // Otherwise, compute the number of slots a queue gets
             designated_slots = MAX_PRIO - current_prio;
             // access the corresponding prio queue in the MLQ
@@ -148,11 +151,10 @@ get_mlq_proc (void)
                     if (priority_queue->slots == designated_slots)
                         {
                             // increase the out-of-slots counter
-                            num_queues_out_slots++;
+                            // num_queues_out_slots++;
                             // increase the prio counter
-                            current_prio = (current_prio + 1) % MAX_PRIO;
-                            // on to next queue
-                            continue;
+                            current_prio = (current_prio + 1)
+                                           % MAX_PRIO; // next queue please
                         }
                     else // just get the first process from the queue
                         {
@@ -166,8 +168,15 @@ get_mlq_proc (void)
                         }
                 }
             else
-                current_prio
-                    = (current_prio + 1) % MAX_PRIO; // check next queue
+                {
+                    current_prio
+                        = (current_prio + 1) % MAX_PRIO; // next queue please
+                }
+
+            if (current_prio == 0) // A new cycle has began, reset all queues
+                {
+                    reset_slots ();
+                }
         }
 }
 
@@ -183,10 +192,10 @@ put_mlq_proc (struct pcb_t *proc)
      *
      */
     pthread_mutex_lock (&queue_lock);
-//    printf ("\nlook at its prio: %d\n", proc->prio);
+    //    printf ("\nlook at its prio: %d\n", proc->prio);
     if (proc->prio < 0 || proc->prio >= MAX_PRIO)
         {
-            pthread_mutex_unlock(&queue_lock);
+            pthread_mutex_unlock (&queue_lock);
             return;
         }
     enqueue (&mlq_ready_queue[proc->prio], proc);
@@ -205,7 +214,7 @@ add_mlq_proc (struct pcb_t *proc)
     pthread_mutex_lock (&queue_lock);
     if (proc->prio < 0 || proc->prio >= MAX_PRIO)
         {
-            pthread_mutex_unlock(&queue_lock);
+            pthread_mutex_unlock (&queue_lock);
             return;
         }
     enqueue (&mlq_ready_queue[proc->prio], proc);
