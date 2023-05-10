@@ -269,9 +269,9 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
             return -1;
         }
 
-    uint32_t pte = mm->pgd[pgn];
+    uint32_t * pte = &mm->pgd[pgn];
 
-    if (!PAGING_PAGE_PRESENT (pte)) // if PAGE NOT PRESENT
+    if (!PAGING_PAGE_PRESENT (*pte)) // if PAGE NOT PRESENT
                                     // pte not initialized
         { /* Page is not online, make it actively living */
             // int vicpgn, swpfpn;
@@ -295,7 +295,14 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
             if (get_freefp_status != -1)
                 {
-                    pte_set_fpn (&pte, freefpn);
+                    SETBIT (*pte,                      // Make pte "present"
+                            PAGING_PTE_PRESENT_MASK); // Duplicate with
+                                                      // pte_set_fpn's macro.
+                                                      // However, this macro is
+                                                      // still put here to
+                                                      // clarify the flow of
+                                                      // pg_getpage algorithm.
+                    pte_set_fpn (pte, freefpn);
                     printf ("Get free frame from RAM succesfully.\n");
                 }
             else
@@ -307,7 +314,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                             return -1;
                         }
 
-                    uint32_t vicpte = mm->pgd[vicpgn];
+                    uint32_t * vicpte = &mm->pgd[vicpgn];
 
                     // Swap the contents of the current page out
 
@@ -328,17 +335,20 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
                             return -1; // If current mswp full, return error.
                         }
-                    int srcfpn_out = PAGING_FPN (vicpte);
+                    int srcfpn_out = PAGING_FPN (*vicpte);
                     int dstfpn_out = mswp_free_frame;
                     __swap_cp_page (caller->mram, srcfpn_out,
                                     caller->active_mswp, dstfpn_out);
 
                     // And swap the contents from SWP of the needed page in.
 
-                    int srcfpn_in = PAGING_SWP (pte);
-                    int dstfpn_in = PAGING_FPN (vicpte);
+                    int srcfpn_in = PAGING_SWP (*pte);
+                    int dstfpn_in = PAGING_FPN (*vicpte);
                     __swap_cp_page (caller->mram, srcfpn_in,
                                     caller->active_mswp, dstfpn_in);
+
+                    // Free the frame on SWP
+                    MEMPHY_put_freefp (*caller->mswp, srcfpn_in);
 
                     int phyaddr_swp
                         = (mswp_free_frame << PAGING_ADDR_FPN_LOBIT);
@@ -348,13 +358,13 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
                     // PTE off pte and victim pte must be updated
 
-                    pte_set_fpn (&pte, dstfpn_in); // the page now become
+                    pte_set_fpn (pte, dstfpn_in); // the page now become
                                                    // "RAM"-oriented (32-bits)
-                    pte_set_swap (&vicpte, swptyp,
+                    pte_set_swap (vicpte, swptyp,
                                   swpoff); // the page now become
                                            // "SWP"-oriented (only 25bits)
 
-                    SETBIT (pte,                      // Make pte "present"
+                    SETBIT (*pte,                      // Make pte "present"
                             PAGING_PTE_PRESENT_MASK); // Duplicate with
                                                       // pte_set_fpn's macro.
                                                       // However, this macro is
@@ -362,13 +372,13 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                                                       // clarify the flow of
                                                       // pg_getpage algorithm.
                     CLRBIT (
-                        vicpte,
+                        *vicpte,
                         PAGING_PTE_PRESENT_MASK); // Make vicpte "unpresent"
                                                   // Note that this CLRBIT must
                                                   // come AFTER pte_set_swap()
 
-                    mm->pgd[vicpgn] = vicpte; // Update page table
-                    mm->pgd[pgn] = pte;       // Update page table
+                    mm->pgd[vicpgn] = *vicpte; // Update page table
+                    mm->pgd[pgn] = *pte;       // Update page table
 
                     printf ("Swapped sucessfully, frame %d updated.\n",
                             dstfpn_in);
@@ -385,13 +395,13 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
             /* Update its online status of the target page */
             // pte_set_fpn() & mm->pgd[pgn];
-            // pte_set_fpn (&pte, tgtfpn);
+            // pte_set_fpn (pte, tgtfpn);
         }
 
     /* Add to LRU for page replacement algorithm by @Triet */
     enlist_pgn_node (&caller->mm->lru_pgn, pgn);
 
-    *fpn = PAGING_FPN (pte);
+    *fpn = PAGING_FPN (*pte);
 
     return 0;
 }
