@@ -517,14 +517,20 @@ pgread (struct pcb_t *proc, // Process executing the instruction
     int val = __read (proc, 0, source, offset, &data);
 
     // destination = (uint32_t)data; // ignore this
-    if (destination < 0 || destination >= PCB_REG_N)
-        {
-            printf ("Error: in mm-vm.c / pgread() :\n");
-            printf ("Process=%d does not own reg=%d.\n", proc->pid,
-                    destination);
-            return -1;
-        }
-    proc->regs[destination] = data;
+    // if (destination < 0 || destination >= PCB_REG_N)
+    //     {
+    //         printf ("Error: in mm-vm.c / pgread() :\n");
+    //         printf ("Process=%d does not own reg=%d.\n", proc->pid,
+    //                 destination);
+    //         return -1;
+    //     }
+    
+    if (pgwrite(proc, data, destination, 0) != 0)
+    {
+        printf ("Error: in mm-vm.c / pgread() :\n");
+        printf("Storing the read value failed.\n");
+    }
+    // proc->regs[destination] = data;
 #ifdef IODUMP
     printf ("read region=%d offset=%d value=%d, pid=%d\n", source, offset,
             data, proc->pid);
@@ -535,7 +541,7 @@ pgread (struct pcb_t *proc, // Process executing the instruction
 #endif
 
     // Dump register after READ
-    dump_register (proc);
+    // dump_register (proc);
 
     return val;
 }
