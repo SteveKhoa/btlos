@@ -67,27 +67,34 @@ init_pte (uint32_t *pte,
 int
 pte_set_swap (uint32_t *pte, int swptyp, int swpoff)
 {
-    SETBIT (*pte, PAGING_PTE_PRESENT_MASK);
-    SETBIT (*pte, PAGING_PTE_SWAPPED_MASK);
+    // SETBIT (*pte, PAGING_PTE_PRESENT_MASK);
+    // SETBIT (*pte, PAGING_PTE_SWAPPED_MASK);
 
-    SETVAL (*pte, swptyp, PAGING_PTE_SWPTYP_MASK, PAGING_PTE_SWPTYP_LOBIT);
-    SETVAL (*pte, swpoff, PAGING_PTE_SWPOFF_MASK, PAGING_PTE_SWPOFF_LOBIT);
+    // SETVAL (*pte, swptyp, PAGING_PTE_SWPTYP_MASK, PAGING_PTE_SWPTYP_LOBIT);
+    // SETVAL (*pte, swpoff, PAGING_PTE_SWPOFF_MASK, PAGING_PTE_SWPOFF_LOBIT);
+    *pte = (*pte) & (0x00000000); // Clear the bits
+    *pte = (*pte) | swptyp; // set swptyp
+    *pte = (*pte) | (swpoff << 5); // set swpoff (which is fpn on SWP)
+    *pte = (*pte) | (0x40000000);
 
     return 0;
 }
 
 /*
- * pte_set_swap - Set PTE entry for on-line page
+ * pte_set_swap - Set PTE entry for on-line page. Checked, worked as expected.
  * @pte   : target page table entry (PTE)
  * @fpn   : frame page number (FPN)
  */
 int
 pte_set_fpn (uint32_t *pte, int fpn)
 {
-    SETBIT (*pte, PAGING_PTE_PRESENT_MASK);
-    CLRBIT (*pte, PAGING_PTE_SWAPPED_MASK);
+    // SETBIT (*pte, PAGING_PTE_PRESENT_MASK);
+    // CLRBIT (*pte, PAGING_PTE_SWAPPED_MASK);
 
-    SETVAL (*pte, fpn, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
+    // SETVAL (*pte, fpn, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
+    *pte = (*pte) & (0x00000000); // Clear the bits
+    *pte = (*pte) | (0x80000000); // Set "Presented"
+    *pte = (*pte) | fpn; // Set fpn
 
     return 0;
 }
@@ -424,6 +431,12 @@ enlist_vm_rg_node (struct vm_rg_struct **rglist, struct vm_rg_struct *rgnode)
 int
 enlist_pgn_node (struct pgn_t **plist, int pgn)
 {
+    if (plist == NULL)
+        {
+            printf ("enlist_pgn_node unsuccesful.\n\n\n\n\n\n");
+            return -1;
+        }
+
     struct pgn_t *pnode = *plist;
     struct pgn_t *prev = NULL;
     // Find pgn in the list

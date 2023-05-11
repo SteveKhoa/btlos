@@ -159,7 +159,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
 
     *alloc_addr = old_sbrk;
-    printf ("alloc region=%d, size=%d, pid=%d\n", rgid, size, caller->pid);
+    printf ("\talloc region=%d, size=%d, pid=%d\n", rgid, size, caller->pid);
     return 0;
 }
 
@@ -224,7 +224,7 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
      * issued) will print them out regardless of they have been freed using
      * this func.
      */
-    printf ("free region=%d, pid=%d\n", rgid, caller->pid);
+    printf ("\tfree region=%d, pid=%d\n", rgid, caller->pid);
     return 0;
 }
 
@@ -238,7 +238,6 @@ int
 pgalloc (struct pcb_t *proc, uint32_t size, uint32_t reg_index)
 {
     int addr;
-
     /* By default using vmaid = 0 */
     return __alloc (proc, 0, reg_index, size, &addr);
 }
@@ -269,10 +268,10 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
             return -1;
         }
 
-    uint32_t * pte = &mm->pgd[pgn];
+    uint32_t *pte = &mm->pgd[pgn];
 
     if (!PAGING_PAGE_PRESENT (*pte)) // if PAGE NOT PRESENT
-                                    // pte not initialized
+                                     // pte not initialized
         { /* Page is not online, make it actively living */
             // int vicpgn, swpfpn;
             // int vicfpn;
@@ -295,7 +294,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
             if (get_freefp_status != -1)
                 {
-                    SETBIT (*pte,                      // Make pte "present"
+                    SETBIT (*pte,                     // Make pte "present"
                             PAGING_PTE_PRESENT_MASK); // Duplicate with
                                                       // pte_set_fpn's macro.
                                                       // However, this macro is
@@ -303,7 +302,9 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                                                       // clarify the flow of
                                                       // pg_getpage algorithm.
                     pte_set_fpn (pte, freefpn);
-                    printf ("Get free frame from RAM succesfully.\n");
+                    printf ("pid=%d get free frame fpn=%d from RAM for pgn=%d "
+                            "succesfully.\n",
+                            caller->pid, freefpn, pgn);
                 }
             else
                 {
@@ -314,7 +315,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                             return -1;
                         }
 
-                    uint32_t * vicpte = &mm->pgd[vicpgn];
+                    uint32_t *vicpte = &mm->pgd[vicpgn];
 
                     // Swap the contents of the current page out
 
@@ -335,36 +336,35 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
                             return -1; // If current mswp full, return error.
                         }
-                    int srcfpn_out = PAGING_FPN (*vicpte);
+                    int srcfpn_out = *vicpte & (0x00001FFF); // Extract FPN
                     int dstfpn_out = mswp_free_frame;
                     __swap_cp_page (caller->mram, srcfpn_out,
                                     caller->active_mswp, dstfpn_out);
 
                     // And swap the contents from SWP of the needed page in.
 
-                    int srcfpn_in = PAGING_SWP (*pte);
-                    int dstfpn_in = PAGING_FPN (*vicpte);
+                    int srcfpn_in
+                        = ((*pte) >> 5) & (0x000FFFFF);    // Extract SWP FPN
+                    int dstfpn_in = *vicpte & (0x0001FFF); // Extract FPN
                     __swap_cp_page (caller->mram, srcfpn_in,
                                     caller->active_mswp, dstfpn_in);
 
                     // Free the frame on SWP
                     MEMPHY_put_freefp (*caller->mswp, srcfpn_in);
 
-                    int phyaddr_swp
-                        = (mswp_free_frame << PAGING_ADDR_FPN_LOBIT);
                     int swptyp = 0; // In this assignment, we assume swptyp = 0
-                    int swpoff = phyaddr_swp; // SWP OFFSET, where the frame
-                                              // actually is on MSWP
+                    int swpoff = mswp_free_frame; // SWP OFFSET = SWP FPN
+                                                  // The frame number on SWP
 
                     // PTE off pte and victim pte must be updated
 
                     pte_set_fpn (pte, dstfpn_in); // the page now become
-                                                   // "RAM"-oriented (32-bits)
+                                                  // "RAM"-oriented (32-bits)
                     pte_set_swap (vicpte, swptyp,
                                   swpoff); // the page now become
                                            // "SWP"-oriented (only 25bits)
 
-                    SETBIT (*pte,                      // Make pte "present"
+                    SETBIT (*pte,                     // Make pte "present"
                             PAGING_PTE_PRESENT_MASK); // Duplicate with
                                                       // pte_set_fpn's macro.
                                                       // However, this macro is
@@ -380,8 +380,9 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                     mm->pgd[vicpgn] = *vicpte; // Update page table
                     mm->pgd[pgn] = *pte;       // Update page table
 
-                    printf ("Swapped sucessfully, frame %d updated.\n",
-                            dstfpn_in);
+                    printf ("pid=%d swapped pgn=%d sucessfully, fpn=%d "
+                            "updated for pgn=%d\n",
+                            caller->pid, vicpgn, dstfpn_in, pgn);
                 }
 
             /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
@@ -401,7 +402,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     /* Add to LRU for page replacement algorithm by @Triet */
     enlist_pgn_node (&caller->mm->lru_pgn, pgn);
 
-    *fpn = PAGING_FPN (*pte);
+    *fpn = *pte & (0x00001FFF); // Extract FPN
 
     return 0;
 }
@@ -541,9 +542,9 @@ pgread (struct pcb_t *proc, // Process executing the instruction
 //        printf ("Error: in mm-vm.c / pgread() :\n");
 //        printf("Storing the read value failed.\n");
 //    }
-    // proc->regs[destination] = data;
+// proc->regs[destination] = data;
 #ifdef IODUMP
-    printf ("read region=%d offset=%d value=%d, pid=%d\n", source, offset,
+    printf ("\tread region=%d offset=%d value=%d, pid=%d\n", source, offset,
             data, proc->pid);
 #ifdef PAGETBL_DUMP
     print_pgtbl (proc, 0, -1); // print max TBL
@@ -612,11 +613,11 @@ pgwrite (struct pcb_t *proc,   // Process executing the instruction
          uint32_t offset)
 {
 #ifdef IODUMP
-    printf ("write val=%d ==> region=%d,offset=%d,pid=%d\n", data, destination,
-            offset, proc->pid),
-    printf("Before write:\n");
+    printf ("\twrite val=%d ==> region=%d,offset=%d,pid=%d\n", data,
+            destination, offset, proc->pid),
+        printf ("Before write:\n");
 #ifdef PAGETBL_DUMP
-        print_pgtbl (proc, 0, -1); // print max TBL
+    print_pgtbl (proc, 0, -1); // print max TBL
 #endif
     MEMPHY_dump (proc->mram);
 #endif
@@ -624,14 +625,14 @@ pgwrite (struct pcb_t *proc,   // Process executing the instruction
     int stat = __write (proc, 0, destination, offset, data);
 
     if (stat != 0)
-    {
-        return stat;
-    }
+        {
+            return stat;
+        }
 
 #ifdef IODUMP
-    printf("After write:\n");
+    printf ("After write:\n");
 #ifdef PAGETBL_DUMP
-        print_pgtbl (proc, 0, -1); // print max TBL
+    print_pgtbl (proc, 0, -1); // print max TBL
 #endif
     MEMPHY_dump (proc->mram);
 #endif
@@ -757,7 +758,8 @@ inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
         < 0)
         {
             printf ("Error: in mm.c / inc_vma_limit() :\n");
-            printf("vm_map_ram() not successful. Perhaps not enough frames.\n");
+            printf (
+                "vm_map_ram() not successful. Perhaps not enough frames.\n");
             return -1; /* Map the memory to MEMRAM */
         }
 
@@ -787,6 +789,7 @@ find_victim_page (struct mm_struct *mm, int *retpgn)
             *retpgn = pg->pgn;
             free (pg);
             pg = NULL;
+            mm->lru_pgn = NULL;
             return 0;
         }
     /**
