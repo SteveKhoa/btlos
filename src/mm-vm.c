@@ -159,7 +159,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
     caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
 
     *alloc_addr = old_sbrk;
-    printf ("\talloc region=%d, size=%d, pid=%d\n", rgid, size, caller->pid);
+    printf ("\tpid %d allocated %d bytes for region %d\n", caller->pid, size, rgid);
     return 0;
 }
 
@@ -302,8 +302,8 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                                                       // clarify the flow of
                                                       // pg_getpage algorithm.
                     pte_set_fpn (pte, freefpn);
-                    printf ("pid=%d get free frame fpn=%d from RAM for pgn=%d "
-                            "succesfully.\n",
+                    printf ("\tpid %d gets free frame fpn %d from RAM for pgn %d "
+                            "successfully.\n",
                             caller->pid, freefpn, pgn);
                 }
             else
@@ -311,7 +311,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                     int vicpgn;
                     if (find_victim_page (caller->mm, &vicpgn) == -1)
                         {
-                            printf ("Get find victim page failed.\n");
+                            printf ("\t Obtaining victim page failed.\n");
                             return -1;
                         }
 
@@ -380,8 +380,8 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                     mm->pgd[vicpgn] = *vicpte; // Update page table
                     mm->pgd[pgn] = *pte;       // Update page table
 
-                    printf ("pid=%d swapped pgn=%d sucessfully, fpn=%d "
-                            "updated for pgn=%d\n",
+                    printf ("\tpid %d swapped victim pgn %d successfully. fpn %d "
+                            "is updated for pgn %d\n",
                             caller->pid, vicpgn, dstfpn_in, pgn);
                 }
 
@@ -414,17 +414,17 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
  *
  */
 int
-pg_getval (struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
+pg_getval (struct mm_struct *mm, int addr, int offset, BYTE *data, struct pcb_t *caller)
 {
     int pgn = PAGING_PGN (addr);
-    int off = PAGING_OFFST (addr);
+    int off = PAGING_OFFST (offset);
     int fpn;
 
     /* Get the page to MEMRAM, swap from MEMSWAP if needed */
     if (pg_getpage (mm, pgn, &fpn, caller) != 0)
         {
             printf ("Error: in mm-vm.c / pg_getval() :\n");
-            printf ("pg_getpage() is not sucessful.\n");
+            printf ("pg_getpage() is not successful.\n");
             return -1; /* invalid page access */
         }
 
@@ -447,10 +447,10 @@ pg_getval (struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
  * @return 0 if successful; -1 if paging failed.
  */
 int
-pg_setval (struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
+pg_setval (struct mm_struct *mm, int addr, int offset, BYTE value, struct pcb_t *caller)
 {
     int pgn = PAGING_PGN (addr);
-    int off = PAGING_OFFST (addr);
+    int off = PAGING_OFFST (offset);
     int fpn;
 
     /* Get the page to MEMRAM, swap from MEMSWAP if needed */
@@ -505,7 +505,7 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
             return -1;
         }
 
-    return pg_getval (caller->mm, currg->rg_start + offset, data, caller);
+    return pg_getval (caller->mm, currg->rg_start + offset, offset, data, caller);
 
     // return 0;
 }
@@ -589,7 +589,7 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
 
     // We MUST return pg_setval retval, not always 0, so that when
     // pg_setval() failed, we know immediately.
-    return pg_setval (caller->mm, currg->rg_start + offset, value, caller);
+    return pg_setval (caller->mm, currg->rg_start + offset, offset, value, caller);
 
     // return 0;
 }
@@ -615,7 +615,7 @@ pgwrite (struct pcb_t *proc,   // Process executing the instruction
 #ifdef IODUMP
     printf ("\twrite val=%d ==> region=%d,offset=%d,pid=%d\n", data,
             destination, offset, proc->pid),
-        printf ("Before write:\n");
+        printf ("Before pid %d writes:\n", proc->pid);
 #ifdef PAGETBL_DUMP
     print_pgtbl (proc, 0, -1); // print max TBL
 #endif
@@ -630,7 +630,7 @@ pgwrite (struct pcb_t *proc,   // Process executing the instruction
         }
 
 #ifdef IODUMP
-    printf ("After write:\n");
+    printf ("After pid %d writes:\n", proc->pid);
 #ifdef PAGETBL_DUMP
     print_pgtbl (proc, 0, -1); // print max TBL
 #endif

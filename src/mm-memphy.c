@@ -322,8 +322,8 @@ MEMPHY_dump (struct memphy_struct *mp)
      */
     flockfile (stdout); // To avoid the dump messages
                         // interleaved by external messages
-    printf ("=== Physical Memory Dump ===\n");
-    printf ("%7s  %10s:%7s\n", "fpn", "phyaddr", "value");
+    printf ("\t=== Physical Memory Dump ===\n");
+    printf ("\t%7s  %10s:%7s\n", "fpn", "phyaddr", "value");
     for (int phyaddr = 0; phyaddr < mp->maxsz; phyaddr++)
         {
             // int fpn = -1;
@@ -333,10 +333,10 @@ MEMPHY_dump (struct memphy_struct *mp)
             int fpn = phyaddr >> PAGING_ADDR_FPN_LOBIT;
 
             if (mp->storage[phyaddr] != '\0') // if that position is clean
-                printf ("%7d  %010d:%7d\n", fpn, phyaddr,
+                printf ("\t%7d  0x%010x:%7d\n", fpn, phyaddr,
                         mp->storage[phyaddr]);
         }
-    printf ("============================\n");
+    printf ("\t============================\n");
     funlockfile (stdout); // Follows the above flockfile()
     return 0;
 }

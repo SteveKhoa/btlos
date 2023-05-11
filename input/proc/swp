@@ -7,5 +7,6 @@ write 103 2 30
 free 1
 write 100 2 20
 read 2 20 2
+write 11 4 17
 free 4
 free 2
