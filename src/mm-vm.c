@@ -103,8 +103,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
 
             *alloc_addr = rgnode.rg_start;
 
-            printf ("alloc region=%d, size=%d, pid=%d\n", rgid, size,
-                    caller->pid);
+            printf ("\tpid %d allocated %d bytes for region %d\n", caller->pid, size, rgid);
 
             return 0;
         }
@@ -131,8 +130,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
             caller->mm->symrgtbl[rgid].rg_start = old_sbrk;
             caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
 
-            printf ("alloc region=%d, size=%d, pid=%d\n", rgid, size,
-                    caller->pid);
+            printf ("\tpid %d allocated %d bytes for region %d\n", caller->pid, size, rgid);
             return 0;
         }
     // otherwise, we need to fit in one page at a time
