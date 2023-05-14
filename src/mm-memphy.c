@@ -320,6 +320,12 @@ MEMPHY_dump (struct memphy_struct *mp)
     /*TODO dump memphy contnt mp->storage
      *     for tracing the memory content
      */
+    // MEMPHY_dump can not work, if [mp] is NULL
+    if (mp == NULL || mp->storage == NULL)
+    {
+        printf("MEMPHY_dump unsuccessful, memphy_struct is NULL.\n");
+        return -1;
+    }
     flockfile (stdout); // To avoid the dump messages
                         // interleaved by external messages
     printf ("\t=== Physical Memory Dump ===\n");

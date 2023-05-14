@@ -306,14 +306,50 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                 }
             else
                 {
-                    int vicpgn;
-                    if (find_victim_page (caller->mm, &vicpgn) == -1)
-                        {
-                            printf ("\t Obtaining victim page failed.\n");
-                            return -1;
-                        }
+                    uint32_t *vicpte = NULL;
 
-                    uint32_t *vicpte = &mm->pgd[vicpgn];
+                    int vicpgn;
+
+                    int inf_loop_guard = 0;
+                    while (1)
+                        {
+                            /* To avoid infinite loop */
+                            // Infinite loop could happen if LRU does not
+                            // contain any usable page.
+                            // If LRU is too large, we can just increase the
+                            // upper limit.
+                            inf_loop_guard += 1;
+                            if (inf_loop_guard > 1000)
+                                {
+                                    printf ("Error: in mm-vm.c / pg_getpage() "
+                                            ":\n");
+                                    printf ("Infinite loop detected. Or "
+                                            "perhaps can not find the "
+                                            "suitable victim page.\n");
+                                    return -1;
+                                }
+
+                            if (find_victim_page (caller->mm, &vicpgn) == -1)
+                                {
+                                    printf ("Get find victim page failed.\n");
+                                    return -1;
+                                }
+
+                            vicpte = &mm->pgd[vicpgn];
+
+                            if (!PAGING_PAGE_PRESENT (*vicpte))
+                                // If this victim page is not suitable
+                                // (not available on RAM)
+                                {
+                                    enlist_pgn_node (&caller->mm->lru_pgn,
+                                                     vicpgn);
+                                    continue;
+                                }
+                            else // If this victim page is suitable
+                                {
+                                    break;
+                                }
+                        }
 
                     // Swap the contents of the current page out
 
@@ -339,28 +375,47 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                     __swap_cp_page (caller->mram, srcfpn_out,
                                     caller->active_mswp, dstfpn_out);
 
+                    // The frame has just been swapped out, now
+                    // available for swap in.
+                    int fpn_available = srcfpn_out;
+
                     // And swap the contents from SWP of the needed page in.
+                    // However, if the pte is brand new, that is:
+                    // does not exist on SWP and does not exist on RAM
+                    // then, DO NOT perform swap in.
 
-                    int srcfpn_in
-                        = ((*pte) >> 5) & (0x000FFFFF);    // Extract SWP FPN
-                    int dstfpn_in = *vicpte & (0x0001FFF); // Extract FPN
-                    __swap_cp_page (caller->active_mswp, srcfpn_in,
-                                    caller->mram, dstfpn_in);
+                    if ((*pte) & (0x40000000)) // if pte has SWP
+                        {
+                            int srcfpn_in = ((*pte) >> 5)
+                                            & (0x001FFFFF); // Extract SWP FPN
+                            int dstfpn_in
+                                = fpn_available; // Extract FPN
+                                                 // which is the frame
+                                                 // has just been
+                                                 // swapped out above
+                            __swap_cp_page (caller->active_mswp, srcfpn_in,
+                                            caller->mram, dstfpn_in);
 
-                    // Free the frame on SWP
-                    MEMPHY_put_freefp (*caller->mswp, srcfpn_in);
+                            // Free the frame on SWP
+                            MEMPHY_put_freefp (*caller->mswp, srcfpn_in);
 
-                    int swptyp = 0; // In this assignment, we assume swptyp = 0
-                    int swpoff = mswp_free_frame; // SWP OFFSET = SWP FPN
-                                                  // The frame number on SWP
+                            int swptyp = 0; // In this assignment, we assume
+                                            // swptyp = 0
+                            int swpoff
+                                = mswp_free_frame; // SWP OFFSET = SWP FPN
+                                                   // The frame number on SWP
 
-                    // PTE off pte and victim pte must be updated
+                            // PTE off pte and victim pte must be updated [1]
+                            pte_set_swap (
+                                vicpte, swptyp,
+                                swpoff); // the page now become
+                                         // "SWP"-oriented (only 25bits)
+                        }
 
-                    pte_set_fpn (pte, dstfpn_in); // the page now become
-                                                  // "RAM"-oriented (32-bits)
-                    pte_set_swap (vicpte, swptyp,
-                                  swpoff); // the page now become
-                                           // "SWP"-oriented (only 25bits)
+                    // PTE off pte and victim pte must be updated [2]
+                    pte_set_fpn (pte,
+                                 fpn_available); // the page now become
+                                                 // "RAM"-oriented (32-bits)
 
                     SETBIT (*pte,                     // Make pte "present"
                             PAGING_PTE_PRESENT_MASK); // Duplicate with
@@ -380,7 +435,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
                     printf ("\tpid %d swapped victim pgn %d successfully. fpn %d "
                             "is updated for pgn %d\n",
-                            caller->pid, vicpgn, dstfpn_in, pgn);
+                            caller->pid, vicpgn, fpn_available, pgn);
                 }
 
             /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
@@ -412,7 +467,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
  *
  */
 int
-pg_getval (struct mm_struct *mm, int addr, int offset, BYTE *data, struct pcb_t *caller)
+pg_getval (struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
 {
     int pgn = PAGING_PGN (addr);
     int off = PAGING_OFFST (addr);
@@ -445,7 +500,7 @@ pg_getval (struct mm_struct *mm, int addr, int offset, BYTE *data, struct pcb_t 
  * @return 0 if successful; -1 if paging failed.
  */
 int
-pg_setval (struct mm_struct *mm, int addr, int offset, BYTE value, struct pcb_t *caller)
+pg_setval (struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
 {
     int pgn = PAGING_PGN (addr);
     int off = PAGING_OFFST (addr);
@@ -503,7 +558,7 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
             return -1;
         }
 
-    return pg_getval (caller->mm, currg->rg_start + offset, offset, data, caller);
+    return pg_getval (caller->mm, currg->rg_start + offset, data, caller);
 
     // return 0;
 }
@@ -587,7 +642,7 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
 
     // We MUST return pg_setval retval, not always 0, so that when
     // pg_setval() failed, we know immediately.
-    return pg_setval (caller->mm, currg->rg_start + offset, offset, value, caller);
+    return pg_setval (caller->mm, currg->rg_start + offset, value, caller);
 
     // return 0;
 }
