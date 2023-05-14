@@ -320,6 +320,12 @@ MEMPHY_dump (struct memphy_struct *mp)
     /*TODO dump memphy contnt mp->storage
      *     for tracing the memory content
      */
+    // MEMPHY_dump can not work, if [mp] is NULL
+    if (mp == NULL || mp->storage == NULL)
+    {
+        printf("MEMPHY_dump unsuccessful, memphy_struct is NULL.\n");
+        return -1;
+    }
     flockfile (stdout); // To avoid the dump messages
                         // interleaved by external messages
     printf ("=== Physical Memory Dump ===\n");
@@ -354,6 +360,12 @@ init_memphy (struct memphy_struct *mp, int max_size, int randomflg)
 {
     mp->storage = (BYTE *)malloc (max_size * sizeof (BYTE));
     mp->maxsz = max_size;
+
+    // Init storage, avoid garbage values
+    for (int phyaddr = 0 ; phyaddr < mp->maxsz ; ++phyaddr)
+    {
+        mp->storage[phyaddr] = '\0';
+    }
 
     MEMPHY_format (mp, PAGING_PAGESZ); // Config free_fp_listx
     mp->used_fp_list = NULL;           // Config used_fp_list
