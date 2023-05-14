@@ -345,10 +345,9 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                                                      vicpgn);
                                     continue;
                                 }
-                            else // If this victim page is suitable
-                                {
-                                    break;
-                                }
+                            // If this victim page is suitable
+                                                                    break;
+
                         }
 
                     // Swap the contents of the current page out
@@ -399,18 +398,18 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                             // Free the frame on SWP
                             MEMPHY_put_freefp (*caller->mswp, srcfpn_in);
 
-                            int swptyp = 0; // In this assignment, we assume
-                                            // swptyp = 0
-                            int swpoff
-                                = mswp_free_frame; // SWP OFFSET = SWP FPN
-                                                   // The frame number on SWP
-
-                            // PTE off pte and victim pte must be updated [1]
-                            pte_set_swap (
-                                vicpte, swptyp,
-                                swpoff); // the page now become
-                                         // "SWP"-oriented (only 25bits)
                         }
+                    int swptyp = 0; // In this assignment, we assume
+                                    // swptyp = 0
+                    int swpoff
+                        = mswp_free_frame; // SWP OFFSET = SWP FPN
+                                           // The frame number on SWP
+
+                    // PTE off pte and victim pte must be updated [1]
+                    pte_set_swap (
+                        vicpte, swptyp,
+                        swpoff); // the page now become
+                                 // "SWP"-oriented (only 25bits)
 
                     // PTE off pte and victim pte must be updated [2]
                     pte_set_fpn (pte,
@@ -551,7 +550,7 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
         }
 
     if (currg->rg_start + offset < currg->rg_start
-        || currg->rg_start + offset > currg->rg_end)
+        || currg->rg_start + offset >= currg->rg_end)
         {
             printf ("Error: in mm-vm.c / __read() :\n");
             printf ("Segmentation fault. Accessing out-of-range region.\n");
@@ -633,7 +632,7 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
         }
 
     if (currg->rg_start + offset < currg->rg_start
-        || currg->rg_start + offset > currg->rg_end)
+        || currg->rg_start + offset >= currg->rg_end)
         {
             printf ("Error: in mm-vm.c / __write() :\n");
             printf ("Segmentation fault. pid %d has accessed out-of-range region.\n", caller->pid);
