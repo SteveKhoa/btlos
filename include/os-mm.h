@@ -7,6 +7,8 @@
 #ifndef OSMM_H
 #define OSMM_H
 
+#include <pthread.h>
+
 #define MM_PAGING
 #define PAGING_MAX_MMSWP 4 /* max number of supported swapped space */
 #define PAGING_MAX_SYMTBL_SZ 30
@@ -112,6 +114,8 @@ struct memphy_struct
     /* List of free frames and used frames (Linked-list) */
     struct framephy_struct *free_fp_list;
     struct framephy_struct *used_fp_list;
+
+    pthread_mutex_t memphy_lock;
 };
 
 #endif
