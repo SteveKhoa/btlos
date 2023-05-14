@@ -344,8 +344,8 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                     int srcfpn_in
                         = ((*pte) >> 5) & (0x000FFFFF);    // Extract SWP FPN
                     int dstfpn_in = *vicpte & (0x0001FFF); // Extract FPN
-                    __swap_cp_page (caller->mram, srcfpn_in,
-                                    caller->active_mswp, dstfpn_in);
+                    __swap_cp_page (caller->active_mswp, srcfpn_in,
+                                    caller->mram, dstfpn_in);
 
                     // Free the frame on SWP
                     MEMPHY_put_freefp (*caller->mswp, srcfpn_in);
@@ -415,7 +415,7 @@ int
 pg_getval (struct mm_struct *mm, int addr, int offset, BYTE *data, struct pcb_t *caller)
 {
     int pgn = PAGING_PGN (addr);
-    int off = PAGING_OFFST (offset);
+    int off = PAGING_OFFST (addr);
     int fpn;
 
     /* Get the page to MEMRAM, swap from MEMSWAP if needed */
@@ -448,7 +448,7 @@ int
 pg_setval (struct mm_struct *mm, int addr, int offset, BYTE value, struct pcb_t *caller)
 {
     int pgn = PAGING_PGN (addr);
-    int off = PAGING_OFFST (offset);
+    int off = PAGING_OFFST (addr);
     int fpn;
 
     /* Get the page to MEMRAM, swap from MEMSWAP if needed */
@@ -490,8 +490,8 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
         || (currg->rg_start == currg->rg_end)) /* Invalid memory identify */
         {
             printf ("Error: in mm-vm.c / __read() :\n");
-            printf ("Segmentation fault. Can not get region %d OR vma %d.\n",
-                    rgid, vmaid);
+            printf ("Segmentation fault. pid %d cannot get region %d OR vma %d.\n",
+                    caller->pid, rgid, vmaid);
             return -1;
         }
 
@@ -572,8 +572,8 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
         || (currg->rg_start == currg->rg_end)) /* Invalid memory identify */
         {
             printf ("Error: in mm-vm.c / __write() :\n");
-            printf ("Segmentation fault. Can not get region %d OR vma %d.\n",
-                    rgid, vmaid);
+            printf ("Segmentation fault. pid %d cannot get region %d OR vma %d.\n",
+                    caller->pid, rgid, vmaid);
             return -1;
         }
 
@@ -581,7 +581,7 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
         || currg->rg_start + offset > currg->rg_end)
         {
             printf ("Error: in mm-vm.c / __write() :\n");
-            printf ("Segmentation fault. Accessing out-of-range region.\n");
+            printf ("Segmentation fault. pid %d has accessed out-of-range region.\n", caller->pid);
             return -1;
         }
 
