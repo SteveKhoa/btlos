@@ -26,11 +26,9 @@
 int
 MEMPHY_mv_csr (struct memphy_struct *mp, int offset)
 {
-    pthread_mutex_lock (&mp->memphy_lock);
 
     if (mp == NULL)
     {
-        pthread_mutex_unlock (&mp->memphy_lock);
         return -1;
     }
 
@@ -51,7 +49,6 @@ MEMPHY_mv_csr (struct memphy_struct *mp, int offset)
             numstep++;
         }
 
-    pthread_mutex_unlock (&mp->memphy_lock);
 
     return 0;
 }
