@@ -347,6 +347,29 @@ MEMPHY_dump (struct memphy_struct *mp)
     return 0;
 }
 
+void
+MEMPHY_alloc_dump (struct memphy_struct *mp)
+{
+    printf ("\t === RAM STATUS: ===\n");
+    printf ("\t RAM: %d\n", mp->maxsz);
+    printf ("\t LIST OF FREE FRAMES IN RAM:\n");
+
+    struct framephy_struct * frit = mp->free_fp_list;
+
+    if (!frit)
+        printf ("\tNO FREE FRAMES LEFT!");
+    printf ("\t\t");
+    while (frit)
+        {
+            printf ("FPN: %d", frit->fpn);
+            if (frit->fp_next)
+                printf ("->");
+            frit = frit->fp_next;
+        }
+    printf ("\n");
+
+}
+
 /**
  * @brief Initialize Physical Memory Structure (Device) and format the device
  * to a new-clean device. Can be used to simulate RAM or SWP device.
