@@ -104,7 +104,8 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
             *alloc_addr = rgnode.rg_start;
 
             printf ("\tpid %d allocated %d bytes for region %d\n", caller->pid, size, rgid);
-
+            printf ("\tregion %d of pid %d starts from address 0x%06x\n", rgid, caller->pid, *alloc_addr);
+            MEMPHY_alloc_dump (caller->mram);
             return 0;
         }
 
@@ -131,6 +132,8 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
             caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
 
             printf ("\tpid %d allocated %d bytes for region %d\n", caller->pid, size, rgid);
+            printf ("\tregion %d of pid %d starts from address 0x%06x\n", rgid, caller->pid, old_sbrk);
+            MEMPHY_alloc_dump (caller->mram);
             return 0;
         }
     // otherwise, we need to fit in one page at a time
@@ -158,6 +161,8 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
 
     *alloc_addr = old_sbrk;
     printf ("\tpid %d allocated %d bytes for region %d\n", caller->pid, size, rgid);
+    printf ("\tregion %d of pid %d starts from address 0x%06x\n", rgid, caller->pid, *alloc_addr);
+    MEMPHY_alloc_dump (caller->mram);
     return 0;
 }
 
@@ -396,8 +401,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
                                             caller->mram, dstfpn_in);
 
                             // Free the frame on SWP
-                            MEMPHY_put_freefp (*caller->mswp, srcfpn_in);
-
+                            MEMPHY_put_freefp (caller->active_mswp, srcfpn_in);
                         }
                     int swptyp = 0; // In this assignment, we assume
                                     // swptyp = 0
